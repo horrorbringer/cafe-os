@@ -1,0 +1,47 @@
+# Environment and local configuration
+.env
+.env.*
+!.env.example
+!**/.env.example
+!**/.env.*.example
+backend/src/main/resources/application-local.properties
+
+# Java / Maven
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+
+# Node / Nuxt
+node_modules/
+.nuxt/
+.output/
+.nitro/
+.data/
+.cache/
+dist/
+coverage/
+
+# Flutter / Dart
+**/.dart_tool/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/build/
+**/android/local.properties
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/flutter_export_environment.sh
+**/macos/Flutter/ephemeral/
+**/ios/Flutter/ephemeral/
+
+# Incomplete generated Flutter copy (the maintained app is in mobile/)
+mobile_app/
+
+# IDE and operating-system files
+.idea/
+.fleet/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+

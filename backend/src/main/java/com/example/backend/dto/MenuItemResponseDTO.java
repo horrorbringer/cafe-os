@@ -1,0 +1,27 @@
+package com.example.backend.dto;
+
+import java.time.LocalDateTime;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class MenuItemResponseDTO {
+
+    private Long menuItemId;
+    private String name;
+    private String nameKh;
+    private String description;
+    private String descriptionKh;
+    private CategoryResponseDTO category;
+    private Double basePrice;
+    private String imageUrl;
+    private Boolean isAvailable;
+    private Boolean lowStock;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private java.util.List<VariantResponseDTO> variants;
+}

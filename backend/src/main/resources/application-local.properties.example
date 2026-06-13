@@ -1,0 +1,11 @@
+# Copy this file to application-local.properties and replace the placeholders.
+# application-local.properties is ignored by Git.
+
+spring.datasource.password=your_database_password
+bakong.api.key=your_bakong_api_key
+jwt.secret=generate_a_long_random_secret
+
+cloudinary.cloud-name=your_cloud_name
+cloudinary.api-key=your_api_key
+cloudinary.api-secret=your_api_secret
+
