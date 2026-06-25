@@ -65,168 +65,39 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
             ),
           ),
           SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context).push(
-                              MaterialPageRoute(
-                                builder: (_) => BranchSelectScreen(
-                                  onBranchSelected: (branch) {
-                                    context.read<MenuProvider>().selectBranch(branch);
-                                    Navigator.of(context).pop();
-                                  },
+            child: RefreshIndicator(
+              onRefresh: _refreshMenu,
+              notificationPredicate: (notification) => notification.depth <= 1,
+              color: AppTheme.primary,
+              backgroundColor: AppTheme.surface,
+              child: menu.isLoading
+                  ? _buildShimmer()
+                  : menu.menuCategories.isEmpty
+                      ? _buildEmptyMenuState()
+                      : NestedScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(
+                            parent: BouncingScrollPhysics(),
+                          ),
+                          headerSliverBuilder: (context, innerBoxIsScrolled) => [
+                            SliverToBoxAdapter(
+                              child: _buildMenuHeader(context, menu, cart),
+                            ),
+                            if (_tabController != null)
+                              SliverPersistentHeader(
+                                pinned: true,
+                                delegate: _CategoryTabsHeader(
+                                  controller: _tabController!,
+                                  categories: menu.menuCategories,
                                 ),
                               ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    Text(
-                                      menu.selectedBranch?.name ?? 'Select Branch',
-                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                    const Icon(Icons.keyboard_arrow_down, size: 20, color: AppTheme.primary),
-                                  ],
-                                ),
-                                if (menu.selectedBranch?.location != null)
-                                  Text(
-                                    menu.selectedBranch!.location!,
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: AppTheme.textSecondary,
-                                        ),
-                                  ),
-                              ],
-                            ),
+                          ],
+                          body: TabBarView(
+                            controller: _tabController,
+                            children: menu.menuCategories
+                                .map((cat) => _buildMenuGrid(cat.categoryId, cat.items))
+                                .toList(),
                           ),
                         ),
-                      ),
-                      IconButton(
-                        onPressed: widget.onSearchTap,
-                        icon: const Icon(Icons.search, color: AppTheme.textPrimary),
-                      ),
-                      Stack(
-                        children: [
-                          IconButton(
-                            onPressed: widget.onCartTap,
-                            icon: const Icon(Icons.shopping_bag_outlined,
-                                color: AppTheme.textPrimary),
-                          ),
-                          if (cart.itemCount > 0)
-                            Positioned(
-                              right: 4,
-                              top: 4,
-                              child: Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: const BoxDecoration(
-                                  color: AppTheme.primary,
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Text(
-                                  '${cart.itemCount}',
-                                  style: const TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // Loyalty Pulse (Glassmorphism card)
-                _buildLoyaltyPulse(context),
-                
-                const SizedBox(height: 24),
-                
-                // Featured Items
-                if (menu.menuCategories.isNotEmpty) ...[
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Text(
-                      'Featured for you',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.5,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildFeaturedSection(menu),
-                  const SizedBox(height: 24),
-                ],
-
-                // Category tabs
-                if (menu.menuCategories.isNotEmpty && _tabController != null)
-                  Container(
-                    height: 44,
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: TabBar(
-                      controller: _tabController,
-                      isScrollable: true,
-                      tabAlignment: TabAlignment.start,
-                      labelColor: Colors.white,
-                      unselectedLabelColor: AppTheme.textSecondary,
-                      indicator: BoxDecoration(
-                        color: AppTheme.primary,
-                        borderRadius: BorderRadius.circular(22),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppTheme.primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      dividerColor: Colors.transparent,
-                      labelPadding: const EdgeInsets.symmetric(horizontal: 4),
-                      tabs: menu.menuCategories
-                          .map((c) => Tab(
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                                  child: Text(c.name,
-                                      style: const TextStyle(
-                                          fontSize: 14, fontWeight: FontWeight.w700)),
-                                ),
-                              ))
-                          .toList(),
-                    ),
-                  ),
-                const SizedBox(height: 8),
-                // Menu grid
-                Expanded(
-                  child: menu.isLoading
-                      ? _buildShimmer()
-                      : menu.menuCategories.isEmpty
-                          ? const Center(child: Text('No menu items available'))
-                          : TabBarView(
-                              controller: _tabController,
-                              children: menu.menuCategories
-                                  .map((cat) => _buildMenuGrid(cat.items))
-                                  .toList(),
-                            ),
-                ),
-              ],
             ),
           ),
         ],
@@ -295,6 +166,146 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
                 ),
               ),
             ),
+    );
+  }
+
+  Future<void> _refreshMenu() async {
+    await context.read<MenuProvider>().loadBranches();
+    if (mounted) {
+      await context.read<AuthProvider>().refreshProfile();
+    }
+  }
+
+  Widget _buildMenuHeader(BuildContext context, MenuProvider menu, CartProvider cart) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+          child: Row(
+            children: [
+              Expanded(
+                child: InkWell(
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => BranchSelectScreen(
+                          onBranchSelected: (branch) {
+                            context.read<MenuProvider>().selectBranch(branch);
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 4),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                menu.selectedBranch?.name ?? 'Select Branch',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 20,
+                              color: AppTheme.primary,
+                            ),
+                          ],
+                        ),
+                        if (menu.selectedBranch?.location != null)
+                          Text(
+                            menu.selectedBranch!.location!,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                  color: AppTheme.textSecondary,
+                                ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: widget.onSearchTap,
+                icon: const Icon(Icons.search, color: AppTheme.textPrimary),
+              ),
+              Stack(
+                children: [
+                  IconButton(
+                    onPressed: widget.onCartTap,
+                    icon: const Icon(
+                      Icons.shopping_bag_outlined,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  if (cart.itemCount > 0)
+                    Positioned(
+                      right: 4,
+                      top: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: AppTheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          '${cart.itemCount}',
+                          style: const TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildLoyaltyPulse(context),
+        const SizedBox(height: 24),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Text(
+            'Featured for you',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w800,
+                ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        _buildFeaturedSection(menu),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  Widget _buildEmptyMenuState() {
+    return CustomScrollView(
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
+      ),
+      slivers: const [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Center(child: Text('No menu items available')),
+        ),
+      ],
     );
   }
 
@@ -426,33 +437,27 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
     );
   }
 
-  Widget _buildMenuGrid(List<MenuItem> items) {
-    return RefreshIndicator(
-      onRefresh: () async {
-        await context.read<MenuProvider>().loadBranches();
-        if (mounted) {
-          await context.read<AuthProvider>().refreshProfile();
-        }
-      },
-      color: AppTheme.primary,
-      backgroundColor: AppTheme.surface,
-      child: GridView.builder(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 120), // Extra bottom padding for FloatingNavBar
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          childAspectRatio: 0.7, // Slightly taller cards for premium look
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final item = items[index];
-          return _MenuItemCard(
-            item: item,
-            onTap: () => widget.onItemTap(item.menuItemId),
-          );
-        },
+  Widget _buildMenuGrid(int categoryId, List<MenuItem> items) {
+    return GridView.builder(
+      key: PageStorageKey('menu_grid_$categoryId'),
+      physics: const AlwaysScrollableScrollPhysics(
+        parent: BouncingScrollPhysics(),
       ),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 128),
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        childAspectRatio: 0.7,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+      ),
+      itemCount: items.length,
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return _MenuItemCard(
+          item: item,
+          onTap: () => widget.onItemTap(item.menuItemId),
+        );
+      },
     );
   }
 
@@ -461,7 +466,10 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
       baseColor: AppTheme.surface,
       highlightColor: AppTheme.surfaceLight,
       child: GridView.builder(
-        padding: const EdgeInsets.all(16),
+        physics: const AlwaysScrollableScrollPhysics(
+          parent: BouncingScrollPhysics(),
+        ),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 128),
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
           childAspectRatio: 0.75,
@@ -479,6 +487,73 @@ class _MenuScreenState extends State<MenuScreen> with SingleTickerProviderStateM
         },
       ),
     );
+  }
+}
+
+class _CategoryTabsHeader extends SliverPersistentHeaderDelegate {
+  final TabController controller;
+  final List<CategoryWithItems> categories;
+
+  const _CategoryTabsHeader({
+    required this.controller,
+    required this.categories,
+  });
+
+  @override
+  double get minExtent => 60;
+
+  @override
+  double get maxExtent => 60;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: AppTheme.background.withValues(alpha: 0.96),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      alignment: Alignment.centerLeft,
+      child: TabBar(
+        controller: controller,
+        isScrollable: true,
+        tabAlignment: TabAlignment.start,
+        labelColor: Colors.white,
+        unselectedLabelColor: AppTheme.textSecondary,
+        indicator: BoxDecoration(
+          color: AppTheme.primary,
+          borderRadius: BorderRadius.circular(22),
+          boxShadow: [
+            BoxShadow(
+              color: AppTheme.primary.withValues(alpha: 0.3),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        dividerColor: Colors.transparent,
+        labelPadding: const EdgeInsets.symmetric(horizontal: 4),
+        tabs: categories
+            .map(
+              (c) => Tab(
+                height: 44,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Text(
+                    c.name,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ),
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  @override
+  bool shouldRebuild(covariant _CategoryTabsHeader oldDelegate) {
+    return controller != oldDelegate.controller || categories != oldDelegate.categories;
   }
 }
 

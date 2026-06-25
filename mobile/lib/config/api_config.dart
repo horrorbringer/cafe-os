@@ -3,7 +3,7 @@ class ApiConfig {
   // Use your machine's local IP (e.g., 192.168.1.x) for physical devices
   // Use 127.0.0.1 or localhost for web/desktop
   
-  static const String baseUrl = 'http://10.0.2.2:8081/api/mobile';
+  static const String baseUrl = 'http://localhost:8081/api/mobile';
   
   // Example for real device (replace with your IP)
   // static const String baseUrl = 'http://192.168.1.5:8081/api/mobile';

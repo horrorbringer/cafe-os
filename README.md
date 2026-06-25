@@ -33,7 +33,7 @@ Edit `application-local.properties` and replace the placeholder values. This fil
 
 ```properties
 spring.datasource.password=your_db_password
-bakong.api.key=your_bakong_key
+bakong.api.token=your_bakong_open_api_token
 jwt.secret=your_jwt_secret
 ```
 
@@ -112,7 +112,7 @@ System configuration is managed via environment variables. See the table below:
 | ------------------- | -------------------- |
 | `POSTGRES_DB`       | Database name        |
 | `POSTGRES_PASSWORD` | Database password    |
-| `BAKONG_API_KEY`    | Payment API key      |
+| `BAKONG_API_TOKEN`  | Bakong Open API token |
 | `JWT_SECRET`        | Token signing secret |
 
 > [!IMPORTANT]

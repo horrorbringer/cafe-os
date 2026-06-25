@@ -20,7 +20,7 @@ The backend uses environment variables for sensitive configuration. These can be
 | `SPRING_DATASOURCE_URL`      | `jdbc:postgresql://localhost:5432/vuespringdb` | Database connection URL |
 | `SPRING_DATASOURCE_USERNAME` | `postgres`                                     | Database username       |
 | `SPRING_DATASOURCE_PASSWORD` | _(none)_                                       | Database password       |
-| `BAKONG_API_KEY`             | _(none)_                                       | Bakong payment API key  |
+| `BAKONG_API_TOKEN`           | _(none)_                                       | Bakong Open API token   |
 | `JWT_SECRET`                 | _(dev default)_                                | JWT signing secret      |
 
 ### Local Development Setup
@@ -35,7 +35,7 @@ The backend uses environment variables for sensitive configuration. These can be
 
    ```properties
    spring.datasource.password=your_password
-   bakong.api.key=your_bakong_key
+   bakong.api.token=your_bakong_open_api_token
    jwt.secret=your_jwt_secret
    ```
 

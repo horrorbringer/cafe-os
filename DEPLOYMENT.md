@@ -76,7 +76,7 @@ sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin 
     | Variable            | Description                                 |
     | ------------------- | ------------------------------------------- |
     | `POSTGRES_PASSWORD` | Strong database password                    |
-    | `BAKONG_API_KEY`    | Your Bakong payment API key                 |
+    | `BAKONG_API_TOKEN`  | Your Bakong Open API token                  |
     | `JWT_SECRET`        | Random 32+ character string for JWT signing |
 
 > [!CAUTION]
@@ -140,8 +140,8 @@ docker compose -f docker-compose.prod.yml up -d --build
 | `POSTGRES_DB`       | Yes      | Database name                            |
 | `POSTGRES_USER`     | Yes      | Database user                            |
 | `POSTGRES_PASSWORD` | Yes      | Database password (use strong password!) |
-| `BAKONG_API_URL`    | No       | Bakong API endpoint                      |
-| `BAKONG_API_KEY`    | Yes      | Bakong payment API key                   |
+| `BAKONG_API_URL`    | No       | Bakong transaction-check endpoint        |
+| `BAKONG_API_TOKEN`  | Yes      | Bakong Open API token                    |
 | `JWT_SECRET`        | Yes      | Secret for signing JWT tokens            |
 | `JWT_EXPIRATION`    | No       | Token expiry in ms (default: 86400000)   |
 

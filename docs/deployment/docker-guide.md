@@ -68,7 +68,7 @@ We use a root-level `.env` file to manage configuration across all services. Thi
 | `BACKEND_PORT`          | Port exposed to the host for the Backend.  |
 | `FRONTEND_PORT`         | Port exposed to the host for the Frontend. |
 | `SPRING_DATASOURCE_URL` | JDBC connection string for the backend.    |
-| `BAKONG_API_KEY`        | Bakong payment API key.                    |
+| `BAKONG_API_TOKEN`      | Bakong Open API token.                     |
 | `JWT_SECRET`            | Secret for JWT token signing.              |
 
 ### Service-Specific Config
