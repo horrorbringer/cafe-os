@@ -174,9 +174,8 @@ public class PosOrderAdjustmentService {
                 break;
         }
         order.setUpdatedAt(LocalDateTime.now());
-        orderRepository.save(order);
-
         // Restore inventory when order is voided or refunded
         orderService.restoreInventoryForOrder(order);
+        orderRepository.save(order);
     }
 }

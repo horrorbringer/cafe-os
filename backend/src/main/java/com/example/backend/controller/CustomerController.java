@@ -17,6 +17,7 @@ import com.example.backend.dto.CustomerRequestDTO;
 import com.example.backend.dto.CustomerResponseDTO;
 import com.example.backend.dto.common.ApiResponse;
 import com.example.backend.dto.customer.CustomerHistoryDTO;
+import com.example.backend.dto.customer.CustomerLoyaltyAdjustmentRequest;
 import com.example.backend.services.CustomerHistoryService;
 import com.example.backend.services.CustomerService;
 
@@ -56,6 +57,18 @@ public class CustomerController {
             @RequestBody CustomerRequestDTO request) {
         CustomerResponseDTO response = customerService.updateCustomer(id, request);
         return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/{id}/loyalty-adjustments")
+    public ResponseEntity<ApiResponse<CustomerResponseDTO>> adjustLoyaltyPoints(@PathVariable Long id,
+            @jakarta.validation.Valid @RequestBody CustomerLoyaltyAdjustmentRequest request) {
+        try {
+            CustomerResponseDTO response = customerService.adjustLoyaltyPoints(id, request.getPoints(),
+                    request.getReason());
+            return ResponseEntity.ok(ApiResponse.success(response, "Loyalty points adjusted successfully"));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage()));
+        }
     }
 
     @DeleteMapping("/{id}")

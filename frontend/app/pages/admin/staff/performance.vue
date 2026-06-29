@@ -126,70 +126,53 @@
             </h3>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead>
-                <tr class="bg-neutral-50 dark:bg-neutral-800/50 text-left">
-                  <th
-                    class="px-6 py-3 text-[10px] font-black text-neutral-500 uppercase tracking-widest"
-                  >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
                     Employee
-                  </th>
-                  <th
-                    class="px-6 py-3 text-[10px] font-black text-neutral-500 uppercase tracking-widest text-center"
-                  >
+                  </TableHead>
+                  <TableHead class="text-center">
                     Orders
-                  </th>
-                  <th
-                    class="px-6 py-3 text-[10px] font-black text-neutral-500 uppercase tracking-widest text-right"
-                  >
+                  </TableHead>
+                  <TableHead class="text-right">
                     Sales
-                  </th>
-                  <th
-                    class="px-6 py-3 text-[10px] font-black text-neutral-500 uppercase tracking-widest text-right"
-                  >
+                  </TableHead>
+                  <TableHead class="text-right">
                     ATV
-                  </th>
-                  <th
-                    class="px-6 py-3 text-[10px] font-black text-neutral-500 uppercase tracking-widest text-center"
-                  >
+                  </TableHead>
+                  <TableHead class="text-center">
                     Upsell %
-                  </th>
-                  <th
-                    class="px-6 py-3 text-[10px] font-black text-neutral-500 uppercase tracking-widest text-center"
-                  >
+                  </TableHead>
+                  <TableHead class="text-center">
                     Punctuality
-                  </th>
-                  <th
-                    class="px-6 py-3 text-[10px] font-black text-neutral-500 uppercase tracking-widest text-center"
-                  >
+                  </TableHead>
+                  <TableHead class="text-center">
                     Drawer Ops
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                class="divide-y divide-neutral-100 dark:divide-neutral-800"
-              >
-                <tr v-if="loading">
-                  <td colspan="7" class="px-6 py-12 text-center">
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="loading">
+                  <TableCell colspan="7" class="text-center">
                     <div
                       class="animate-spin h-6 w-6 border-2 border-primary-500 border-t-transparent rounded-full mx-auto"
                     ></div>
-                  </td>
-                </tr>
-                <tr v-else-if="performanceData.length === 0">
-                  <td
+                  </TableCell>
+                </TableRow>
+                <TableRow v-else-if="performanceData.length === 0">
+                  <TableCell
                     colspan="7"
-                    class="px-6 py-12 text-center text-neutral-500"
+                    class="text-center text-neutral-500"
                   >
                     No data found for this period.
-                  </td>
-                </tr>
-                <tr
+                  </TableCell>
+                </TableRow>
+                <TableRow
                   v-for="staff in performanceData"
                   :key="staff.employeeId"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                 >
-                  <td class="px-6 py-4">
+                  <TableCell>
                     <div
                       class="text-sm font-bold text-neutral-900 dark:text-white"
                     >
@@ -200,23 +183,17 @@
                     >
                       Staff ID: {{ staff.employeeId }}
                     </div>
-                  </td>
-                  <td
-                    class="px-6 py-4 text-center font-mono text-sm text-neutral-600 dark:text-neutral-400"
-                  >
+                  </TableCell>
+                  <TableCell class="text-center font-mono text-sm text-neutral-600 dark:text-neutral-400">
                     {{ staff.totalOrders }}
-                  </td>
-                  <td
-                    class="px-6 py-4 text-right font-mono font-bold text-neutral-900 dark:text-white"
-                  >
+                  </TableCell>
+                  <TableCell class="text-right font-mono font-bold text-neutral-900 dark:text-white">
                     ${{ staff.totalSales.toFixed(2) }}
-                  </td>
-                  <td
-                    class="px-6 py-4 text-right font-mono text-sm text-neutral-600 dark:text-neutral-400"
-                  >
+                  </TableCell>
+                  <TableCell class="text-right font-mono text-sm text-neutral-600 dark:text-neutral-400">
                     ${{ staff.avgTransactionValue.toFixed(2) }}
-                  </td>
-                  <td class="px-6 py-4 text-center">
+                  </TableCell>
+                  <TableCell class="text-center">
                     <div class="flex flex-col items-center">
                       <span
                         :class="[
@@ -238,8 +215,8 @@
                         ></div>
                       </div>
                     </div>
-                  </td>
-                  <td class="px-6 py-4 text-center">
+                  </TableCell>
+                  <TableCell class="text-center">
                     <span
                       :class="[
                         'px-2 py-0.5 rounded text-[10px] font-black uppercase text-white',
@@ -265,9 +242,8 @@
                     <div class="text-[10px] text-neutral-500 mt-1">
                       {{ staff.totalLateMinutes }} mins late
                     </div>
-                  </td>
-                  <td
-                    class="px-6 py-4 text-center font-mono text-sm"
+                  </TableCell>
+                  <TableCell class="text-center font-mono text-sm"
                     :class="
                       staff.manualDrawerOpens > staff.totalOrders * 0.1
                         ? 'text-red-500 font-bold'
@@ -275,10 +251,10 @@
                     "
                   >
                     {{ staff.manualDrawerOpens }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
         </div>
       </div>

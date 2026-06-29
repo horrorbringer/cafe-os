@@ -77,6 +77,12 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "points_redeemed")
     private Integer pointsRedeemed = 0;
 
+    @Column(name = "points_earned")
+    private Integer pointsEarned = 0;
+
+    @Column(name = "inventory_deducted")
+    private Boolean inventoryDeducted = false;
+
     @Column(name = "status_reason", columnDefinition = "TEXT")
     private String statusReason;
 
@@ -239,6 +245,22 @@ public class OrderEntity extends BaseEntity {
 
     public void setPointsRedeemed(Integer pointsRedeemed) {
         this.pointsRedeemed = pointsRedeemed;
+    }
+
+    public Integer getPointsEarned() {
+        return pointsEarned;
+    }
+
+    public void setPointsEarned(Integer pointsEarned) {
+        this.pointsEarned = pointsEarned;
+    }
+
+    public Boolean getInventoryDeducted() {
+        return inventoryDeducted;
+    }
+
+    public void setInventoryDeducted(Boolean inventoryDeducted) {
+        this.inventoryDeducted = inventoryDeducted;
     }
 
     public String getStatusReason() {

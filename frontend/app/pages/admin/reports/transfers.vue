@@ -1,12 +1,17 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb
-        :items="[
-          { label: 'Reports', href: '/admin/reports' },
-          { label: 'Stock Transfer History' },
-        ]"
-      />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/reports">Reports</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Stock Transfer History</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div
@@ -33,84 +38,86 @@
             v-model="endDate"
             class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-sm"
           />
-          <button
+          <Button
             @click="fetchTransfers"
-            class="btn-primary"
+            variant="default"
             :disabled="loading"
           >
             Update
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Content -->
-      <div v-if="loading" class="card p-12 flex justify-center">
-        <div
-          class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"
-        ></div>
-      </div>
+      <Card v-if="loading">
+        <CardContent class="p-12 flex justify-center">
+          <div
+            class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"
+          ></div>
+        </CardContent>
+      </Card>
 
-      <div v-else-if="transfers.length > 0" class="card overflow-hidden">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left font-sans">
-            <thead
-              class="bg-neutral-50 dark:bg-neutral-800/50 text-xs font-bold text-neutral-500 uppercase tracking-widest"
-            >
-              <tr>
-                <th class="px-6 py-4">Date & Time</th>
-                <th class="px-6 py-4">Ingredient</th>
-                <th class="px-6 py-4">From Branch</th>
-                <th class="px-6 py-4">To Branch</th>
-                <th class="px-6 py-4 text-right">Quantity</th>
-                <th class="px-6 py-4">Transferred By</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-              <tr
-                v-for="t in transfers"
-                :key="t.transferId"
-                class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+      <div v-else-if="transfers.length > 0">
+        <Card class="overflow-hidden">
+          <CardContent class="p-0">
+          <div class="overflow-x-auto">
+            <Table class="font-sans">
+              <TableHeader
+                class="bg-neutral-50 dark:bg-neutral-800/50 text-xs font-bold text-neutral-500 uppercase tracking-widest"
               >
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  {{ formatDate(t.transferDate) }}
-                </td>
-                <td class="px-6 py-4">
-                  <div class="font-bold text-neutral-900 dark:text-white">
-                    {{ t.ingredientName }}
-                  </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span
-                    class="px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full text-xs font-medium"
-                  >
-                    {{ t.fromBranchName }}
-                  </span>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-primary-600 dark:text-primary-400 font-bold"
+                <TableRow>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Ingredient</TableHead>
+                  <TableHead>From Branch</TableHead>
+                  <TableHead>To Branch</TableHead>
+                  <TableHead class="text-right">Quantity</TableHead>
+                  <TableHead>Transferred By</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="t in transfers"
+                  :key="t.transferId"
                 >
-                  → {{ t.toBranchName }}
-                </td>
-                <td class="px-6 py-4 text-right font-mono font-bold">
-                  {{ t.quantity }}
-                  <span
-                    class="text-[10px] text-neutral-400 uppercase tracking-tighter"
-                    >{{ t.unit }}</span
-                  >
-                </td>
-                <td
-                  class="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400"
-                >
-                  {{ t.transferredByName }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                  <TableCell class="whitespace-nowrap text-sm">
+                    {{ formatDate(t.transferDate) }}
+                  </TableCell>
+                  <TableCell>
+                    <div class="font-bold text-neutral-900 dark:text-white">
+                      {{ t.ingredientName }}
+                    </div>
+                  </TableCell>
+                  <TableCell class="whitespace-nowrap">
+                    <span
+                      class="px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full text-xs font-medium"
+                    >
+                      {{ t.fromBranchName }}
+                    </span>
+                  </TableCell>
+                  <TableCell class="whitespace-nowrap text-primary-600 dark:text-primary-400 font-bold">
+                    → {{ t.toBranchName }}
+                  </TableCell>
+                  <TableCell class="text-right font-mono font-bold">
+                    {{ t.quantity }}
+                    <span
+                      class="text-[10px] text-neutral-400 uppercase tracking-tighter"
+                      >{{ t.unit }}</span
+                    >
+                  </TableCell>
+                  <TableCell class="text-sm text-neutral-600 dark:text-neutral-400">
+                    {{ t.transferredByName }}
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+          </CardContent>
+        </Card>
       </div>
 
       <!-- Empty State -->
-      <div v-else class="card p-20 text-center space-y-4">
+      <Card v-else>
+        <CardContent class="p-20 text-center space-y-4">
         <div
           class="w-20 h-20 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto text-neutral-400"
         >
@@ -134,7 +141,8 @@
             No stock transfers found for the selected period.
           </p>
         </div>
-      </div>
+      </CardContent>
+      </Card>
     </div>
   </NuxtLayout>
 </template>
@@ -188,7 +196,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white rounded-xl px-6 py-2 transition-all active:scale-95 disabled:opacity-50 font-bold text-sm;
-}
 </style>

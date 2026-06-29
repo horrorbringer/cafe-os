@@ -35,6 +35,7 @@ export const useCart = () => {
         level: 'BRONZE'
     }))
     const pointsDiscount = useState('pointsDiscount', () => 0)
+    const pointsRedeemed = useState('pointsRedeemed', () => 0)
     const manualDiscount = useState('manualDiscount', () => 0)
     const toast = useToast()
 
@@ -42,6 +43,7 @@ export const useCart = () => {
         if (!cust) {
             customer.value = { name: 'Walk-in Customer', id: null, points: 0, level: 'BRONZE' }
             pointsDiscount.value = 0
+            pointsRedeemed.value = 0
             return
         }
         customer.value = {
@@ -63,9 +65,13 @@ export const useCart = () => {
             console.error('Failed to fetch loyalty rate, using default', e)
         }
 
-        const discount = points * redeemRate
+        const maxDiscount = Math.max(0, subtotal.value - manualDiscount.value)
+        const maxRedeemablePoints = redeemRate > 0 ? Math.floor(maxDiscount / redeemRate) : 0
+        const safePoints = Math.max(0, Math.min(points, customer.value.points, maxRedeemablePoints))
+        const discount = safePoints * redeemRate
+        pointsRedeemed.value = safePoints
         pointsDiscount.value = discount
-        toast.info(`Redeemed ${points} points ($${discount.toFixed(2)} discount)`)
+        toast.info(`Redeemed ${safePoints} points ($${discount.toFixed(2)} discount)`)
     }
 
     const addToCart = (product: any) => {
@@ -131,6 +137,7 @@ export const useCart = () => {
     const clearCart = () => {
         cartItems.value = []
         pointsDiscount.value = 0
+        pointsRedeemed.value = 0
         manualDiscount.value = 0
     }
 
@@ -208,6 +215,7 @@ export const useCart = () => {
         heldOrders,
         customer,
         pointsDiscount,
+        pointsRedeemed,
         manualDiscount,
         addToCart,
         addToCartWithAddOns,
@@ -224,4 +232,3 @@ export const useCart = () => {
         total
     }
 }
-

@@ -16,8 +16,12 @@ import com.example.backend.dto.report.DashboardStatsDTO;
 import com.example.backend.dto.report.DashboardStatsDTO.PaymentMethodBreakdown;
 import com.example.backend.dto.report.DashboardStatsDTO.RecentOrder;
 import com.example.backend.dto.report.DashboardStatsDTO.TopSellingItem;
+import com.example.backend.dto.report.LoyaltyReportDTO;
+import com.example.backend.model.LoyaltyTransactionEntity.LoyaltyTransactionType;
 import com.example.backend.repository.AttendanceRepository;
 import com.example.backend.repository.IngredientRepository;
+import com.example.backend.repository.CustomerRepository;
+import com.example.backend.repository.LoyaltyTransactionRepository;
 import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.PaymentRepository;
 import com.example.backend.repository.StockAdjustmentRepository;
@@ -41,6 +45,9 @@ public class ReportService {
         private final com.example.backend.repository.RecipeRepository recipeRepository;
         private final StockTransferRepository stockTransferRepository;
         private final BranchStockRepository branchStockRepository;
+        private final CustomerRepository customerRepository;
+        private final LoyaltyTransactionRepository loyaltyTransactionRepository;
+        private final LoyaltyService loyaltyService;
 
         public ReportService(OrderRepository orderRepository,
                         PaymentRepository paymentRepository,
@@ -52,7 +59,10 @@ public class ReportService {
                         com.example.backend.repository.StockInRepository stockInRepository,
                         com.example.backend.repository.RecipeRepository recipeRepository,
                         StockTransferRepository stockTransferRepository,
-                        BranchStockRepository branchStockRepository) {
+                        BranchStockRepository branchStockRepository,
+                        CustomerRepository customerRepository,
+                        LoyaltyTransactionRepository loyaltyTransactionRepository,
+                        LoyaltyService loyaltyService) {
                 this.orderRepository = orderRepository;
                 this.paymentRepository = paymentRepository;
                 this.ingredientRepository = ingredientRepository;
@@ -64,6 +74,9 @@ public class ReportService {
                 this.recipeRepository = recipeRepository;
                 this.stockTransferRepository = stockTransferRepository;
                 this.branchStockRepository = branchStockRepository;
+                this.customerRepository = customerRepository;
+                this.loyaltyTransactionRepository = loyaltyTransactionRepository;
+                this.loyaltyService = loyaltyService;
         }
 
         @Transactional(readOnly = true)
@@ -117,6 +130,42 @@ public class ReportService {
                 stats.setDailySales(get7DaySalesBreakdown());
 
                 return stats;
+        }
+
+        @Transactional(readOnly = true)
+        public LoyaltyReportDTO getLoyaltyReport() {
+                LoyaltyReportDTO report = new LoyaltyReportDTO();
+
+                int outstandingPoints = toInt(customerRepository.sumOutstandingLoyaltyPoints());
+                double redeemRate = loyaltyService.getRedeemRate();
+                int redeemedPoints = Math.abs(toInt(loyaltyTransactionRepository.sumPointsByType(LoyaltyTransactionType.REDEEM)));
+                int adjustedUp = toInt(loyaltyTransactionRepository.sumPositivePointsByType(LoyaltyTransactionType.ADJUSTMENT));
+                int adjustedDown = Math.abs(toInt(loyaltyTransactionRepository.sumNegativePointsByType(LoyaltyTransactionType.ADJUSTMENT)));
+
+                report.setTotalCustomers((int) customerRepository.countByDeletedAtIsNull());
+                report.setActiveLoyaltyCustomers((int) customerRepository.countByDeletedAtIsNullAndLoyaltyPointsGreaterThan(0));
+                report.setBronzeCustomers((int) customerRepository.countByDeletedAtIsNullAndMembershipLevel("BRONZE"));
+                report.setSilverCustomers((int) customerRepository.countByDeletedAtIsNullAndMembershipLevel("SILVER"));
+                report.setGoldCustomers((int) customerRepository.countByDeletedAtIsNullAndMembershipLevel("GOLD"));
+                report.setOutstandingPoints(outstandingPoints);
+                report.setOutstandingValue(roundMoney(outstandingPoints * redeemRate));
+                report.setPointsEarned(toInt(loyaltyTransactionRepository.sumPointsByType(LoyaltyTransactionType.EARN)));
+                report.setPointsRedeemed(redeemedPoints);
+                report.setPointsRefunded(toInt(loyaltyTransactionRepository.sumPointsByType(LoyaltyTransactionType.REFUND_REDEEM)));
+                report.setPointsReversed(Math.abs(toInt(loyaltyTransactionRepository.sumPointsByType(LoyaltyTransactionType.REVERT_EARN))));
+                report.setPointsAdjustedUp(adjustedUp);
+                report.setPointsAdjustedDown(adjustedDown);
+                report.setRedeemedValue(roundMoney(redeemedPoints * redeemRate));
+
+                return report;
+        }
+
+        private int toInt(Long value) {
+                return value != null ? value.intValue() : 0;
+        }
+
+        private double roundMoney(double value) {
+                return Math.round(value * 100.0) / 100.0;
         }
 
         private List<DashboardStatsDTO.DailySales> get7DaySalesBreakdown() {

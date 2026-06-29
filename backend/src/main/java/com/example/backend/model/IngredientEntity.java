@@ -46,6 +46,9 @@ public class IngredientEntity extends BaseEntity {
     @Column(name = "cost_per_unit", nullable = false)
     private Double costPerUnit;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
     public enum IngredientUnit {
         G,
         ML,
@@ -73,4 +76,7 @@ public class IngredientEntity extends BaseEntity {
 
     public Double getCostPerUnit() { return costPerUnit; }
     public void setCostPerUnit(Double costPerUnit) { this.costPerUnit = costPerUnit; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

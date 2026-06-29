@@ -17,10 +17,13 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerMapper customerMapper;
+    private final LoyaltyService loyaltyService;
 
-    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper) {
+    public CustomerService(CustomerRepository customerRepository, CustomerMapper customerMapper,
+            LoyaltyService loyaltyService) {
         this.customerRepository = customerRepository;
         this.customerMapper = customerMapper;
+        this.loyaltyService = loyaltyService;
     }
 
     /**
@@ -96,5 +99,12 @@ public class CustomerService {
         return customers.stream()
                 .map(customerMapper::toResponseDTO)
                 .toList();
+    }
+
+    public CustomerResponseDTO adjustLoyaltyPoints(Long id, int points, String reason) {
+        CustomerEntity customerEntity = customerRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Customer not found with ID: " + id));
+        CustomerEntity updatedCustomer = loyaltyService.adjustPoints(customerEntity, points, reason);
+        return customerMapper.toResponseDTO(updatedCustomer);
     }
 }

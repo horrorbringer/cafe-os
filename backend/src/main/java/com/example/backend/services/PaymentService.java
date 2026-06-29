@@ -22,11 +22,16 @@ public class PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final PaymentMapper paymentMapper;
+    private final LoyaltyService loyaltyService;
+    private final OrderService orderService;
 
-    public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository, PaymentMapper paymentMapper) {
+    public PaymentService(PaymentRepository paymentRepository, OrderRepository orderRepository,
+            PaymentMapper paymentMapper, LoyaltyService loyaltyService, OrderService orderService) {
         this.paymentRepository = paymentRepository;
         this.orderRepository = orderRepository;
         this.paymentMapper = paymentMapper;
+        this.loyaltyService = loyaltyService;
+        this.orderService = orderService;
     }
 
     /**
@@ -84,12 +89,14 @@ public class PaymentService {
 
         // 7. Update order status
         order.setStatus(OrderEntity.OrderStatus.PAID);
+        orderService.deductInventoryForOrder(order);
         // We could also link the payment to the order if the relationship was
         // bidirectional and we wanted to cache it,
         // but OrderEntity doesn't seem to hold a direct reference to a specific payment
         // (OneToMany usually).
         // Check OrderEntity... it doesn't have a Payment field, so just status update.
         order.setUpdatedAt(LocalDateTime.now());
+        loyaltyService.awardPoints(order);
         orderRepository.save(order);
 
         return paymentMapper.toResponseDTO(savedPayment);
@@ -183,6 +190,11 @@ public class PaymentService {
         // Update associated order status
         OrderEntity order = payment.getOrder();
         order.setStatus(OrderEntity.OrderStatus.REFUND);
+        orderService.restoreInventoryForOrder(order);
+        loyaltyService.revertPoints(order);
+        if (order.getPointsRedeemed() != null && order.getPointsRedeemed() > 0) {
+            loyaltyService.refundPoints(order.getCustomer(), order, order.getPointsRedeemed());
+        }
 
         // Log reason to order note
         if (refundReason != null && !refundReason.isEmpty()) {

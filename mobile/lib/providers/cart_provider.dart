@@ -11,7 +11,7 @@ class CartProvider extends ChangeNotifier {
   int? _branchId;
   bool _useLoyaltyPoints = false;
   int _availablePoints = 0;
-  double _pointValue = 0.01; // $0.01 per point default
+  double _pointValue = 0.1; // $0.10 per point default
 
   List<CartItem> get items => List.unmodifiable(_items);
   int get itemCount => _items.fold(0, (sum, item) => sum + item.qty);
@@ -28,7 +28,13 @@ class CartProvider extends ChangeNotifier {
   bool get isEmpty => _items.isEmpty;
 
   double get deliveryFee => _orderType == 'DELIVERY' ? 1.0 : 0.0;
-  double get loyaltyDiscount => _useLoyaltyPoints ? (_availablePoints * _pointValue) : 0.0;
+  int get pointsRedeemed {
+    if (!_useLoyaltyPoints || _pointValue <= 0) return 0;
+    final payableAmount = subtotal + deliveryFee;
+    final maxUsablePoints = (payableAmount / _pointValue).floor();
+    return _availablePoints < maxUsablePoints ? _availablePoints : maxUsablePoints;
+  }
+  double get loyaltyDiscount => pointsRedeemed * _pointValue;
   double get totalAmount => (subtotal + deliveryFee - loyaltyDiscount).clamp(0.0, double.infinity);
 
   void setBranch(int branchId) {
@@ -110,7 +116,7 @@ class CartProvider extends ChangeNotifier {
       'orderType': _orderType,
       'note': _orderNote,
       'items': _items.map((i) => i.toOrderItemJson()).toList(),
-      'pointsRedeemed': _useLoyaltyPoints ? _availablePoints : 0,
+      'pointsRedeemed': pointsRedeemed,
       if (_orderType == 'DELIVERY') ...{
         'deliveryAddress': _deliveryAddress,
         'deliveryPhone': _deliveryPhone,

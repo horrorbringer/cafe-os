@@ -82,6 +82,7 @@ public class MobileOrderDTO {
         private String deliveryAddress;
         private String deliveryPhone;
         private Integer pointsRedeemed;
+        private Integer pointsEarned;
         private String branchName;
         private List<OrderItemResponse> items;
         private String createdAt;

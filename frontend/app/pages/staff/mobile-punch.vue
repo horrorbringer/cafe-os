@@ -8,13 +8,15 @@
       </div>
 
       <!-- Step 1: Employee ID -->
-      <div v-if="!employeeId" class="card bg-neutral-900 border border-neutral-800 p-6 rounded-3xl animate-in zoom-in">
+      <Card v-if="!employeeId" class="bg-neutral-900 border-neutral-800">
+        <CardContent class="p-6">
          <label class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Enter Your Staff ID</label>
          <div class="flex gap-2">
             <input v-model="idInput" type="number" class="flex-1 bg-neutral-800 text-white p-3 rounded-xl border border-neutral-700 font-mono text-center text-lg" placeholder="123" />
             <button @click="confirmId" :disabled="!idInput" class="bg-primary-600 text-white px-6 rounded-xl font-bold uppercase text-xs">Next</button>
          </div>
-      </div>
+        </CardContent>
+      </Card>
 
       <!-- Main Flow -->
       <div v-else class="space-y-6 animate-in slide-in-from-bottom-4">

@@ -195,7 +195,7 @@ public class DataSeeder implements CommandLineRunner {
         menuItems.add(createMenuItemWithImage(coffeeCat, "Cappuccino", "Espresso with milk foam", 3.5, "https://images.unsplash.com/photo-1534778101976-62847782c213?w=400&q=80"));
         menuItems.add(createMenuItemWithImage(coffeeCat, "Latte", "Espresso with steamed milk", 4.0, "https://images.unsplash.com/photo-1561882468-9110e03e0f78?w=400&q=80"));
         menuItems.add(createMenuItemWithImage(teaCat, "Green Tea", "Japanese Sencha", 3.0, "https://images.unsplash.com/photo-1564890369478-c89ca6d9cde9?w=400&q=80"));
-        menuItems.add(createMenuItemWithImage(teaCat, "Earl Grey", "Black tea with bergamot", 3.0, "https://images.unsplash.com/photo-1597318130878-d6180fea8e6c?w=400&q=80"));
+        menuItems.add(createMenuItemWithImage(teaCat, "Earl Grey", "Black tea with bergamot", 3.0, "https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?w=400&q=80"));
         menuItems.add(createMenuItemWithImage(mainDishes, "Avocado Toast", "Sourdough with fresh avo", 8.5, "https://images.unsplash.com/photo-1588137378633-dea1336ce1e2?w=400&q=80"));
         menuItems.add(createMenuItemWithImage(mainDishes, "Caesar Salad", "Classic salad", 7.0, "https://images.unsplash.com/photo-1546793665-c74683f339c1?w=400&q=80"));
         menuItems.add(createMenuItemWithImage(bakeryCat, "Croissant", "Buttery pastry", 2.5, "https://images.unsplash.com/photo-1555507036-ab1f4038808a?w=400&q=80"));

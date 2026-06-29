@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../../config/theme.dart';
+import '../../providers/auth_provider.dart';
 import '../../services/api_service.dart';
 import '../../services/payment_service.dart';
 
@@ -96,6 +97,7 @@ class _PaymentScreenState extends State<PaymentScreen> {
   }
 
   void _showSuccess() {
+    context.read<AuthProvider>().refreshProfile();
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -174,7 +176,16 @@ class _PaymentScreenState extends State<PaymentScreen> {
           ),
           Positioned.fill(
             child: Container(
-              color: AppTheme.background.withValues(alpha: 0.94),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.primary.withValues(alpha: 0.15),
+                    AppTheme.background.withValues(alpha: 0.88),
+                  ],
+                ),
+              ),
             ),
           ),
           Center(

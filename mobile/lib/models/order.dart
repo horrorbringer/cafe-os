@@ -12,6 +12,7 @@ class Order {
   final String? deliveryAddress;
   final String? deliveryPhone;
   final int pointsRedeemed;
+  final int pointsEarned;
   final String? branchName;
   final List<OrderItem> items;
   final String? createdAt;
@@ -30,6 +31,7 @@ class Order {
     this.deliveryAddress,
     this.deliveryPhone,
     this.pointsRedeemed = 0,
+    this.pointsEarned = 0,
     this.branchName,
     this.items = const [],
     this.createdAt,
@@ -50,6 +52,7 @@ class Order {
       deliveryAddress: json['deliveryAddress'],
       deliveryPhone: json['deliveryPhone'],
       pointsRedeemed: json['pointsRedeemed'] ?? 0,
+      pointsEarned: json['pointsEarned'] ?? 0,
       branchName: json['branchName'],
       items: (json['items'] as List<dynamic>?)
               ?.map((i) => OrderItem.fromJson(i))

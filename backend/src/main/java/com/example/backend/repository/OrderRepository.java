@@ -185,4 +185,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, org.s
                         "GROUP BY dateStr ORDER BY dateStr ASC")
         List<Object[]> findDailySalesSummary(@Param("startDate") LocalDateTime startDate,
                         @Param("endDate") LocalDateTime endDate);
+
+        @Query("SELECT o FROM OrderEntity o LEFT JOIN FETCH o.customer " +
+                        "WHERE o.customer IS NOT NULL AND o.deletedAt IS NULL " +
+                        "AND o.status IN ('PAID', 'PREPARING', 'READY', 'COMPLETED')")
+        List<OrderEntity> findOrdersForLoyaltyBackfill();
 }

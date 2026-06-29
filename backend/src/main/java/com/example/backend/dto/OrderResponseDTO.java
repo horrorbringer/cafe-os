@@ -25,6 +25,7 @@ public class OrderResponseDTO {
     private Double taxAmount;
     private Double totalAmount;
     private Integer pointsRedeemed;
+    private Integer pointsEarned;
     private String statusReason;
     private String approvedByName;
     private String orderSource;

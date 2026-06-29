@@ -1,20 +1,30 @@
 <template>
   <div
-    class="min-h-screen bg-[#F2F2F7] dark:bg-[#000000] font-main selection:bg-primary-500/30"
+    class="min-h-screen bg-background font-main selection:bg-primary/30"
   >
+    <!-- Mobile Overlay -->
+    <div
+      v-if="mobileSidebarOpen"
+      class="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden animate-fade-in"
+      @click="mobileSidebarOpen = false"
+    ></div>
+
     <!-- Sidebar -->
     <aside
       :class="[
         'fixed inset-y-0 left-0 z-50 flex flex-col transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
-        'glass-sidebar',
-        sidebarOpen ? 'w-[260px]' : 'w-[80px]',
+        'bg-sidebar border-r border-sidebar-border',
+        sidebarOpen && !isMobile ? 'w-[260px]' : '',
+        isMobile && mobileSidebarOpen ? 'w-[260px] translate-x-0' : '',
+        isMobile && !mobileSidebarOpen ? 'w-[260px] -translate-x-full' : '',
+        !isMobile && !sidebarOpen ? 'w-[80px]' : '',
       ]"
     >
       <!-- Logo Section -->
       <div class="flex items-center h-[72px] px-6">
         <div class="flex items-center gap-3">
           <div
-            class="w-9 h-9 rounded-xl overflow-hidden shadow-macos bg-white flex items-center justify-center"
+            class="w-9 h-9 rounded-xl overflow-hidden shadow-macos bg-white flex items-center justify-center flex-shrink-0"
           >
             <img
               src="~/assets/images/cofeoshop.jpg"
@@ -23,8 +33,8 @@
             />
           </div>
           <span
-            v-if="sidebarOpen"
-            class="font-bold text-[17px] text-neutral-900 dark:text-white tracking-tight animate-in fade-in duration-500"
+            v-if="sidebarOpen || mobileSidebarOpen"
+            class="font-bold text-[17px] text-sidebar-foreground tracking-tight animate-in fade-in duration-500"
           >
             Cofeoshop
           </span>
@@ -40,39 +50,38 @@
           :key="category.name"
           class="space-y-1"
         >
-          <!-- Category Item -->
           <button
             @click="toggleCategory(category.name)"
             :class="[
-              'w-full flex items-center justify-between px-3 py-2.5 rounded-xl transition-all duration-300 group relative',
+              'w-full flex items-center justify-between px-3 py-2.5 rounded-lg transition-all duration-300 group relative',
               isCategoryActive(category)
-                ? 'bg-primary-500/10 text-primary-600 dark:text-primary-400 font-bold'
-                : 'text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5',
+                ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                : 'text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground',
             ]"
           >
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-3 min-w-0">
               <div
                 :class="[
-                  'p-1.5 rounded-lg transition-colors',
+                  'p-1.5 rounded-lg transition-colors flex-shrink-0',
                   isCategoryActive(category)
-                    ? 'text-primary-600'
-                    : 'text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white',
+                    ? 'text-sidebar-accent-foreground'
+                    : 'text-sidebar-foreground/40 group-hover:text-sidebar-accent-foreground',
                 ]"
               >
                 <component :is="category.icon" class="w-[20px] h-[20px]" />
               </div>
               <span
-                v-if="sidebarOpen"
-                class="text-[14px] font-medium tracking-tight whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300"
+                v-if="sidebarOpen || mobileSidebarOpen"
+                class="text-[14px] font-medium tracking-tight whitespace-nowrap animate-in fade-in slide-in-from-left-2 duration-300 truncate"
               >
                 {{ category.name }}
               </span>
             </div>
 
             <svg
-              v-if="sidebarOpen"
+              v-if="sidebarOpen || mobileSidebarOpen"
               xmlns="http://www.w3.org/2000/svg"
-              class="w-3.5 h-3.5 transition-transform duration-300"
+              class="w-3.5 h-3.5 transition-transform duration-300 flex-shrink-0"
               :class="{
                 'rotate-180': expandedCategories.includes(category.name),
               }"
@@ -84,27 +93,26 @@
               <path d="m6 9 6 6 6-6" />
             </svg>
 
-            <!-- Active Indicator Pill -->
             <div
-              v-if="isActive(category.href) && !sidebarOpen"
-              class="absolute left-0 w-1 h-5 bg-primary-500 rounded-r-full"
+              v-if="isCategoryActive(category) && !sidebarOpen && !mobileSidebarOpen"
+              class="absolute left-0 w-1 h-5 bg-sidebar-primary rounded-r-full"
             ></div>
           </button>
 
-          <!-- Sub-menu Items -->
           <div
-            v-if="sidebarOpen && expandedCategories.includes(category.name)"
+            v-if="(sidebarOpen || mobileSidebarOpen) && expandedCategories.includes(category.name)"
             class="pl-11 pr-2 space-y-1 animate-in slide-in-from-top-2 duration-300"
           >
             <NuxtLink
               v-for="child in category.children"
               :key="child.name"
               :to="child.href"
+              @click="mobileSidebarOpen = false"
               :class="[
                 'block px-3 py-2 rounded-lg text-[13px] font-medium transition-all duration-200',
                 isActive(child.href)
-                  ? 'text-primary-600 dark:text-primary-400 bg-primary-500/5'
-                  : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5',
+                  ? 'text-sidebar-accent-foreground bg-sidebar-accent'
+                  : 'text-sidebar-foreground/60 hover:text-sidebar-accent-foreground hover:bg-sidebar-accent',
               ]"
             >
               {{ child.name }}
@@ -113,11 +121,12 @@
         </div>
       </nav>
 
-      <!-- Sidebar Toggle -->
-      <div class="p-4 border-t border-black/5 dark:border-white/5">
+      <!-- Sidebar Toggle (desktop only) -->
+      <div class="p-4 border-t border-sidebar-border hidden lg:block">
         <button
           @click="sidebarOpen = !sidebarOpen"
-          class="w-full h-10 flex items-center justify-center rounded-xl text-neutral-400 hover:bg-black/5 dark:hover:bg-white/5 transition-all active:scale-95"
+          class="w-full h-10 flex items-center justify-center rounded-lg text-sidebar-foreground/60 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-all active:scale-95"
+          :title="sidebarOpen ? 'Collapse sidebar' : 'Expand sidebar'"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -138,16 +147,30 @@
     <main
       :class="[
         'min-h-screen transition-all duration-500 ease-[cubic-bezier(0.23,1,0.32,1)]',
-        sidebarOpen ? 'ml-[260px]' : 'ml-[80px]',
+        sidebarOpen && !isMobile ? 'ml-[260px]' : '',
+        !isMobile && !sidebarOpen ? 'ml-[80px]' : '',
+        isMobile ? 'ml-0' : '',
       ]"
     >
       <!-- Top Navigation Bar -->
       <header
-        class="sticky top-0 z-40 h-[72px] px-8 flex items-center justify-between glass-topbar transition-all duration-300"
+        class="sticky top-0 z-30 h-[72px] px-4 sm:px-8 flex items-center justify-between bg-background/80 backdrop-blur-xl border-b border-border transition-all duration-300"
       >
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-3">
+          <!-- Mobile Hamburger -->
+          <button
+            @click="mobileSidebarOpen = !mobileSidebarOpen"
+            class="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-all -ml-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="4" x2="20" y1="12" y2="12"/>
+              <line x1="4" x2="20" y1="6" y2="6"/>
+              <line x1="4" x2="20" y1="18" y2="18"/>
+            </svg>
+          </button>
+
           <h1
-            class="text-[19px] font-bold text-neutral-900 dark:text-white tracking-tight"
+            class="text-[19px] font-bold text-foreground tracking-tight"
           >
             {{ pageTitle }}
           </h1>
@@ -155,18 +178,17 @@
 
         <div class="flex items-center gap-4">
           <div
-            class="flex items-center bg-black/5 dark:bg-white/5 rounded-2xl p-1 gap-1"
+            class="flex items-center bg-muted rounded-2xl p-1 gap-1"
           >
             <LanguageSwitcher />
           </div>
 
-          <!-- Utility Icons Group -->
           <div
-            class="flex items-center gap-1.5 px-2 border-x border-black/5 dark:border-white/5"
+            class="flex items-center gap-1.5 px-2 border-x border-border"
           >
             <NuxtLink
               to="/admin/inventory"
-              class="w-9 h-9 flex items-center justify-center rounded-xl text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all relative group"
+              class="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-all relative group"
               title="Inventory Alerts"
             >
               <svg
@@ -182,15 +204,16 @@
               </svg>
               <span
                 v-if="lowStockCount > 0"
-                class="absolute -top-1 -right-1 w-4 h-4 bg-primary-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-white dark:border-black"
+                class="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[9px] font-black rounded-full flex items-center justify-center border-2 border-background"
               >
-                {{ lowStockCount }}
+                {{ lowStockCount > 9 ? '9+' : lowStockCount }}
               </span>
             </NuxtLink>
 
             <button
               @click="toggleDarkMode"
-              class="w-9 h-9 flex items-center justify-center rounded-xl text-neutral-500 hover:bg-black/5 dark:hover:bg-white/5 transition-all group"
+              class="w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted transition-all group"
+              :title="isDark ? 'Switch to light mode' : 'Switch to dark mode'"
             >
               <svg
                 v-if="isDark"
@@ -202,9 +225,7 @@
                 stroke-width="2"
               >
                 <circle cx="12" cy="12" r="4" />
-                <path
-                  d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"
-                />
+                <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
               </svg>
               <svg
                 v-else
@@ -224,12 +245,12 @@
           <div class="flex items-center gap-3 pl-2">
             <div class="hidden sm:flex flex-col items-end">
               <span
-                class="text-[13px] font-bold text-neutral-900 dark:text-white leading-none mb-0.5"
+                class="text-[13px] font-bold text-foreground leading-none mb-0.5"
               >
                 {{ authUser?.employeeName || authUser?.username }}
               </span>
               <span
-                class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest leading-none"
+                class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest leading-none"
               >
                 {{ authUser?.roleName }}
               </span>
@@ -237,18 +258,17 @@
 
             <button
               @click="logout"
-              class="w-10 h-10 rounded-2xl bg-primary-500 text-white shadow-macos-lg flex items-center justify-center hover:bg-error-500 transition-all duration-300 active:scale-90 group relative"
+              class="w-10 h-10 rounded-2xl bg-primary text-primary-foreground shadow-macos-lg flex items-center justify-center hover:bg-destructive transition-all duration-300 active:scale-90 group relative"
+              title="Logout"
             >
               <span
-                class="text-[14px] font-bold tracking-tighter group-hover:hidden"
+                class="text-[14px] font-bold tracking-tighter group-hover:opacity-0 transition-opacity"
               >
-                {{
-                  (authUser?.username?.substring(0, 2) || "AD").toUpperCase()
-                }}
+                {{ (authUser?.username?.substring(0, 2) || "AD").toUpperCase() }}
               </span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5 hidden group-hover:block"
+                class="w-5 h-5 absolute opacity-0 group-hover:opacity-100 transition-opacity"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -265,7 +285,7 @@
 
       <!-- Main Dynamic Content Area -->
       <div
-        class="p-8 max-w-[1600px] mx-auto animate-in slide-in-from-bottom-4 fade-in duration-700"
+        class="p-4 sm:p-6 lg:p-8 max-w-[1600px] mx-auto animate-in slide-in-from-bottom-4 fade-in duration-700"
       >
         <slot />
       </div>
@@ -279,8 +299,10 @@ import { ref, computed, h } from "vue";
 const route = useRoute();
 
 const sidebarOpen = ref(true);
+const mobileSidebarOpen = ref(false);
 const isDark = ref(false);
 const lowStockCount = ref(0);
+const isMobile = ref(false);
 const { get } = useApi();
 const { user: authUser, logout: authLogout } = useAuth();
 const toast = useToast();
@@ -288,6 +310,13 @@ const toast = useToast();
 const logout = async () => {
   await authLogout();
   toast.success("Logged out successfully");
+};
+
+const checkMobile = () => {
+  isMobile.value = window.innerWidth < 1024;
+  if (isMobile.value) {
+    mobileSidebarOpen.value = false;
+  }
 };
 
 const fetchLowStockCount = async () => {
@@ -300,6 +329,8 @@ const fetchLowStockCount = async () => {
 };
 
 const pageTitle = computed(() => {
+  const path = route.path;
+
   const titles: Record<string, string> = {
     "/admin": "Dashboard",
     "/admin/menu": "Product Menu",
@@ -308,286 +339,138 @@ const pageTitle = computed(() => {
     "/admin/orders": "Order History",
     "/admin/customers": "Customer Database",
     "/admin/reports": "Business Reports",
+    "/admin/reports/sales": "Sales Reports",
+    "/admin/reports/inventory": "Inventory Reports",
+    "/admin/reports/staff": "Staff Reports",
+    "/admin/reports/transfers": "Transfer Reports",
     "/admin/inventory": "Inventory Stock",
     "/admin/inventory/recipes": "Recipe Management",
     "/admin/inventory/suppliers": "Suppliers",
+    "/admin/inventory/branch-stock": "Branch Stock",
     "/admin/expenses": "Expense Tracking",
     "/admin/branches": "Branch Management",
+    "/admin/branches/insights": "Branch Insights",
     "/admin/settings": "System Settings",
     "/admin/staff": "Employee List",
     "/admin/staff/performance": "Staff Performance",
-    "/admin/staff/roles": "Security Roles",
     "/admin/qr-codes": "QR Table Codes",
   };
-  return titles[route.path] || "Dashboard";
+
+  if (titles[path]) return titles[path];
+
+  // Fallback: extract last segment and format it
+  const segments = path.split("/").filter(Boolean);
+  const last = segments[segments.length - 1];
+  if (last) {
+    return last
+      .replace(/-/g, " ")
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  return "Dashboard";
 });
 
-// Icon components
 const DashboardIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("rect", { width: "7", height: "9", x: "3", y: "3", rx: "1" }),
-      h("rect", { width: "7", height: "5", x: "14", y: "3", rx: "1" }),
-      h("rect", { width: "7", height: "9", x: "14", y: "12", rx: "1" }),
-      h("rect", { width: "7", height: "5", x: "3", y: "16", rx: "1" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("rect", { width: "7", height: "9", x: "3", y: "3", rx: "1" }),
+    h("rect", { width: "7", height: "5", x: "14", y: "3", rx: "1" }),
+    h("rect", { width: "7", height: "9", x: "14", y: "12", rx: "1" }),
+    h("rect", { width: "7", height: "5", x: "3", y: "16", rx: "1" }),
+  ]);
 
 const MenuIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", { d: "M17 8h1a4 4 0 1 1 0 8h-1" }),
-      h("path", { d: "M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M17 8h1a4 4 0 1 1 0 8h-1" }),
+    h("path", { d: "M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" }),
+  ]);
 
 const OrdersIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", { d: "M16 3h5v5" }),
-      h("path", { d: "M8 3H3v5" }),
-      h("path", { d: "M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" }),
-      h("path", { d: "m15 9 6-6" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M16 3h5v5" }),
+    h("path", { d: "M8 3H3v5" }),
+    h("path", { d: "M12 22v-8.3a4 4 0 0 0-1.172-2.872L3 3" }),
+    h("path", { d: "m15 9 6-6" }),
+  ]);
 
 const CustomersIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
-      h("circle", { cx: "9", cy: "7", r: "4" }),
-      h("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87" }),
-      h("path", { d: "M16 3.13a4 4 0 0 1 0 7.75" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+    h("circle", { cx: "9", cy: "7", r: "4" }),
+    h("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87" }),
+    h("path", { d: "M16 3.13a4 4 0 0 1 0 7.75" }),
+  ]);
 
 const ReportsIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [h("path", { d: "M3 3v18h18" }), h("path", { d: "m19 9-5 5-4-4-3 3" })],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M3 3v18h18" }),
+    h("path", { d: "m19 9-5 5-4-4-3 3" }),
+  ]);
 
 const SettingsIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", {
-        d: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z",
-      }),
-      h("circle", { cx: "12", cy: "12", r: "3" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" }),
+    h("circle", { cx: "12", cy: "12", r: "3" }),
+  ]);
 
 const AddOnsIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", { d: "M12 2v20" }),
-      h("path", { d: "M2 12h20" }),
-      h("circle", { cx: "12", cy: "12", r: "4" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M12 2v20" }),
+    h("path", { d: "M2 12h20" }),
+    h("circle", { cx: "12", cy: "12", r: "4" }),
+  ]);
 
 const InventoryIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", {
-        d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z",
-      }),
-      h("path", { d: "m3.3 7 8.7 5 8.7-5" }),
-      h("path", { d: "M12 22V12" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" }),
+    h("path", { d: "m3.3 7 8.7 5 8.7-5" }),
+    h("path", { d: "M12 22V12" }),
+  ]);
 
 const KitchenIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", { d: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" }),
-      h("path", { d: "M7 2v20" }),
-      h("path", { d: "M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" }),
+    h("path", { d: "M7 2v20" }),
+    h("path", { d: "M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3zm0 0v7" }),
+  ]);
 
 const StaffIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
-      h("circle", { cx: "9", cy: "7", r: "4" }),
-      h("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87" }),
-      h("path", { d: "M16 3.13a4 4 0 0 1 0 7.75" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("path", { d: "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" }),
+    h("circle", { cx: "9", cy: "7", r: "4" }),
+    h("path", { d: "M22 21v-2a4 4 0 0 0-3-3.87" }),
+    h("path", { d: "M16 3.13a4 4 0 0 1 0 7.75" }),
+  ]);
 
 const BranchIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("rect", {
-        width: "16",
-        height: "20",
-        x: "4",
-        y: "2",
-        rx: "2",
-        ry: "2",
-      }),
-      h("path", { d: "M9 22v-4h6v4" }),
-      h("path", { d: "M8 6h.01" }),
-      h("path", { d: "M16 6h.01" }),
-      h("path", { d: "M12 6h.01" }),
-      h("path", { d: "M12 10h.01" }),
-      h("path", { d: "M12 14h.01" }),
-      h("path", { d: "M16 10h.01" }),
-      h("path", { d: "M16 14h.01" }),
-      h("path", { d: "M8 10h.01" }),
-      h("path", { d: "M8 14h.01" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("rect", { width: "16", height: "20", x: "4", y: "2", rx: "2", ry: "2" }),
+    h("path", { d: "M9 22v-4h6v4" }),
+    h("path", { d: "M8 6h.01" }),
+    h("path", { d: "M16 6h.01" }),
+    h("path", { d: "M12 6h.01" }),
+    h("path", { d: "M12 10h.01" }),
+    h("path", { d: "M12 14h.01" }),
+    h("path", { d: "M16 10h.01" }),
+    h("path", { d: "M16 14h.01" }),
+    h("path", { d: "M8 10h.01" }),
+    h("path", { d: "M8 14h.01" }),
+  ]);
 
 const DigitalIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
-      h("path", { d: "M7 7h.01" }),
-      h("path", { d: "M17 7h.01" }),
-      h("path", { d: "M7 17h.01" }),
-      h("path", { d: "M17 17h.01" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("rect", { width: "18", height: "18", x: "3", y: "3", rx: "2" }),
+    h("path", { d: "M7 7h.01" }),
+    h("path", { d: "M17 7h.01" }),
+    h("path", { d: "M7 17h.01" }),
+    h("path", { d: "M17 17h.01" }),
+  ]);
 
 const PosIcon = () =>
-  h(
-    "svg",
-    {
-      xmlns: "http://www.w3.org/2000/svg",
-      viewBox: "0 0 24 24",
-      fill: "none",
-      stroke: "currentColor",
-      "stroke-width": "2",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "round",
-    },
-    [
-      h("rect", { width: "20", height: "14", x: "2", y: "3", rx: "2" }),
-      h("line", { x1: "8", x2: "16", y1: "21", y2: "21" }),
-      h("line", { x1: "12", x2: "12", y1: "17", y2: "21" }),
-    ],
-  );
+  h("svg", { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", "stroke-width": "2", "stroke-linecap": "round", "stroke-linejoin": "round" }, [
+    h("rect", { width: "20", height: "14", x: "2", y: "3", rx: "2" }),
+    h("line", { x1: "8", x2: "16", y1: "21", y2: "21" }),
+    h("line", { x1: "12", x2: "12", y1: "17", y2: "21" }),
+  ]);
 
 const {
   canAccessPOS,
@@ -604,8 +487,13 @@ const {
 const expandedCategories = ref<string[]>([]);
 
 const toggleCategory = (category: string) => {
-  if (!sidebarOpen.value) {
-    sidebarOpen.value = true;
+  const isOpen = sidebarOpen.value || mobileSidebarOpen.value;
+  if (!isOpen) {
+    if (isMobile.value) {
+      mobileSidebarOpen.value = true;
+    } else {
+      sidebarOpen.value = true;
+    }
     if (!expandedCategories.value.includes(category)) {
       expandedCategories.value.push(category);
     }
@@ -692,7 +580,6 @@ const navigation = computed(() => {
     .filter((category) => category.children.length > 0 || !category.children);
 });
 
-// Auto-expand categories that contain the active route
 watch(
   () => route.fullPath,
   (fullPath) => {
@@ -704,6 +591,9 @@ watch(
         expandedCategories.value.push(category.name);
       }
     });
+    if (isMobile.value) {
+      mobileSidebarOpen.value = false;
+    }
   },
   { immediate: true },
 );
@@ -713,11 +603,9 @@ const isActive = (href: string) => {
   if (href === "/admin") {
     return route.path === "/admin";
   }
-  // If href contains query, use fullPath for comparison
   if (href.includes("?")) {
     return route.fullPath === href;
   }
-  // Otherwise default to path comparison
   return route.path === href || route.path.startsWith(href + "/");
 };
 
@@ -731,8 +619,9 @@ const toggleDarkMode = () => {
   localStorage.setItem('admin-theme', isDark.value ? 'dark' : 'light');
 };
 
-// Initialize theme: default to light unless saved as dark
 onMounted(() => {
+  checkMobile();
+  window.addEventListener('resize', checkMobile);
   const savedTheme = localStorage.getItem('admin-theme');
   if (savedTheme === 'dark') {
     isDark.value = true;
@@ -741,5 +630,9 @@ onMounted(() => {
   }
   document.documentElement.classList.toggle("dark", isDark.value);
   fetchLowStockCount();
+});
+
+onUnmounted(() => {
+  window.removeEventListener('resize', checkMobile);
 });
 </script>

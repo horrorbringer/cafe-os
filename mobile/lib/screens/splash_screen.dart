@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.background,
+      backgroundColor: const Color(0xFF2B1B13),
       body: Stack(
         children: [
           Positioned.fill(
@@ -111,7 +111,7 @@ class _CoffeeGradient extends StatelessWidget {
           end: Alignment.bottomCenter,
           colors: [
             const Color(0xFF2B1B13).withValues(alpha: 0.44),
-            AppTheme.background.withValues(alpha: 0.82),
+            const Color(0xFF3E2C23).withValues(alpha: 0.82),
             const Color(0xFF2B1B13).withValues(alpha: 0.64),
           ],
           stops: const [0, 0.48, 1],

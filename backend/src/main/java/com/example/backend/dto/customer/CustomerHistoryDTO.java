@@ -16,6 +16,7 @@ public class CustomerHistoryDTO {
 
     private List<OrderHistory> recentOrders;
     private List<FavoriteItem> favoriteItems;
+    private List<LoyaltyTransaction> loyaltyTransactions;
 
     // Nested DTOs
     public static class OrderHistory {
@@ -193,6 +194,90 @@ public class CustomerHistoryDTO {
         }
     }
 
+    public static class LoyaltyTransaction {
+        private Long transactionId;
+        private Long orderId;
+        private String orderNo;
+        private String type;
+        private Integer points;
+        private Integer balanceAfter;
+        private String note;
+        private String date;
+        private String time;
+
+        public Long getTransactionId() {
+            return transactionId;
+        }
+
+        public void setTransactionId(Long transactionId) {
+            this.transactionId = transactionId;
+        }
+
+        public Long getOrderId() {
+            return orderId;
+        }
+
+        public void setOrderId(Long orderId) {
+            this.orderId = orderId;
+        }
+
+        public String getOrderNo() {
+            return orderNo;
+        }
+
+        public void setOrderNo(String orderNo) {
+            this.orderNo = orderNo;
+        }
+
+        public String getType() {
+            return type;
+        }
+
+        public void setType(String type) {
+            this.type = type;
+        }
+
+        public Integer getPoints() {
+            return points;
+        }
+
+        public void setPoints(Integer points) {
+            this.points = points;
+        }
+
+        public Integer getBalanceAfter() {
+            return balanceAfter;
+        }
+
+        public void setBalanceAfter(Integer balanceAfter) {
+            this.balanceAfter = balanceAfter;
+        }
+
+        public String getNote() {
+            return note;
+        }
+
+        public void setNote(String note) {
+            this.note = note;
+        }
+
+        public String getDate() {
+            return date;
+        }
+
+        public void setDate(String date) {
+            this.date = date;
+        }
+
+        public String getTime() {
+            return time;
+        }
+
+        public void setTime(String time) {
+            this.time = time;
+        }
+    }
+
     // Main DTO Getters/Setters
     public Long getCustomerId() {
         return customerId;
@@ -280,5 +365,13 @@ public class CustomerHistoryDTO {
 
     public void setFavoriteItems(List<FavoriteItem> favoriteItems) {
         this.favoriteItems = favoriteItems;
+    }
+
+    public List<LoyaltyTransaction> getLoyaltyTransactions() {
+        return loyaltyTransactions;
+    }
+
+    public void setLoyaltyTransactions(List<LoyaltyTransaction> loyaltyTransactions) {
+        this.loyaltyTransactions = loyaltyTransactions;
     }
 }

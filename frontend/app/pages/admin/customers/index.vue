@@ -1,7 +1,13 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb :items="[{ label: 'Customers' }]" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Customers</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       
       <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -12,40 +18,42 @@
         
         <div class="flex items-center gap-3">
           <div class="relative">
-            <input 
-              v-model="searchQuery"
-              type="text" 
-              placeholder="Search by phone or name..."
-              class="w-64 md:w-80 px-4 py-2.5 pl-10 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500 transition-all font-medium"
-              @keyup.enter="searchCustomer"
-            />
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <SearchIcon class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Input v-model="searchQuery" placeholder="Search by phone or name..." class="w-64 md:w-80 pl-10" @keyup.enter="searchCustomer" />
           </div>
-          <button @click="openCreateModal" class="btn-primary flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="16" y1="11" x2="22" y2="11"/></svg>
+          <Button @click="openCreateModal">
+            <UserPlusIcon class="w-4 h-4" />
             Add Customer
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- CRM Summary Stats -->
       <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
-          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Total Customers</p>
-          <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ customers.length }}</p>
-        </div>
-        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
-          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Total Revenue</p>
-          <p class="text-2xl font-black text-success-600">${{ totalCustomerRevenue.toFixed(2) }}</p>
-        </div>
-        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
-          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Avg Spend</p>
-          <p class="text-2xl font-black text-accent-600">${{ avgCustomerSpend.toFixed(2) }}</p>
-        </div>
-        <div class="card-premium p-5 group hover:scale-[1.02] transition-all">
-          <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Gold Members</p>
-          <p class="text-2xl font-black text-warning-600">{{ goldMemberCount }}</p>
-        </div>
+        <Card class="group hover:scale-[1.02] transition-all">
+          <CardContent class="p-5">
+            <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Total Customers</p>
+            <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ customers.length }}</p>
+          </CardContent>
+        </Card>
+        <Card class="group hover:scale-[1.02] transition-all">
+          <CardContent class="p-5">
+            <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Total Revenue</p>
+            <p class="text-2xl font-black text-success-600">${{ totalCustomerRevenue.toFixed(2) }}</p>
+          </CardContent>
+        </Card>
+        <Card class="group hover:scale-[1.02] transition-all">
+          <CardContent class="p-5">
+            <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Avg Spend</p>
+            <p class="text-2xl font-black text-accent-600">${{ avgCustomerSpend.toFixed(2) }}</p>
+          </CardContent>
+        </Card>
+        <Card class="group hover:scale-[1.02] transition-all">
+          <CardContent class="p-5">
+            <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-1">Gold Members</p>
+            <p class="text-2xl font-black text-warning-600">{{ goldMemberCount }}</p>
+          </CardContent>
+        </Card>
       </div>
 
       <!-- Main Content Area -->
@@ -108,9 +116,9 @@
         <!-- Right Content -->
         <div class="lg:col-span-8">
            <div v-if="loading && selectedCustomerId" class="space-y-6">
-              <div class="card h-32 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"></div>
-              <div class="grid grid-cols-3 gap-6">
-                 <div v-for="i in 3" :key="i" class="card h-24 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"></div>
+               <div class="h-32 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"></div>
+               <div class="grid grid-cols-3 gap-6">
+                  <div v-for="i in 3" :key="i" class="h-24 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"></div>
               </div>
            </div>
            <template v-else-if="history">
@@ -134,22 +142,32 @@
                          ]">
                            {{ history.membershipLevel || 'BRONZE' }} MEMBER
                          </span>
-                         <button @click="openEditModal(history)" class="px-3 py-1 rounded-lg bg-white/10 backdrop-blur-sm text-white/70 hover:bg-white/20 hover:text-white transition-all text-[10px] font-bold uppercase tracking-widest border border-white/10">Edit</button>
+                          <Button variant="ghost" size="sm" @click="openEditModal(history)" class="text-white/70 hover:text-white">Edit</Button>
                       </div>
                       <div class="flex flex-wrap items-center gap-4 mt-2.5 text-sm text-white/70">
                         <span class="flex items-center gap-1.5">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                          <PhoneIcon class="w-4 h-4" />
                           {{ history.phone }}
                         </span>
                         <span class="flex items-center gap-1.5">
-                          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                          <CalendarDaysIcon class="w-4 h-4" />
                           Since {{ formatDate(history.memberSince) }}
                         </span>
                       </div>
                     </div>
-                    <div class="flex items-center gap-2 px-5 py-3 bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-warning-300" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                      <span class="text-white font-black text-xl">{{ history.loyaltyPoints }} <span class="text-xs text-white/60 uppercase ml-0.5">pts</span></span>
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="flex items-center gap-2 px-5 py-3 bg-white/15 backdrop-blur-xl rounded-2xl border border-white/20">
+                        <StarIcon class="w-5 h-5 text-warning-300" />
+                        <span class="text-white font-black text-xl">{{ history.loyaltyPoints }} <span class="text-xs text-white/60 uppercase ml-0.5">pts</span></span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="secondary"
+                        size="sm"
+                        @click="openAdjustmentModal"
+                      >
+                        Adjust
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -157,217 +175,295 @@
 
               <!-- Stats Cards -->
               <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
-                  <div class="flex items-center gap-3 mb-3">
-                    <div class="w-9 h-9 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                <Card class="group hover:-translate-y-1 transition-all">
+                  <CardContent class="p-5">
+                    <div class="w-9 h-9 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600 mb-3">
+                      <ShoppingBagIcon class="w-5 h-5" />
                     </div>
-                  </div>
-                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Orders</p>
-                  <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ history.totalOrders }}</p>
-                </div>
-                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
-                  <div class="flex items-center gap-3 mb-3">
-                    <div class="w-9 h-9 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center text-success-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Orders</p>
+                    <p class="text-2xl font-black text-neutral-900 dark:text-white">{{ history.totalOrders }}</p>
+                  </CardContent>
+                </Card>
+                <Card class="group hover:-translate-y-1 transition-all">
+                  <CardContent class="p-5">
+                    <div class="w-9 h-9 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center text-success-600 mb-3">
+                      <DollarSignIcon class="w-5 h-5" />
                     </div>
-                  </div>
-                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Total Spend</p>
-                  <p class="text-2xl font-black text-success-600">${{ history.totalSpent?.toFixed(2) }}</p>
-                </div>
-                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
-                  <div class="flex items-center gap-3 mb-3">
-                    <div class="w-9 h-9 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center text-accent-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+                    <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Total Spend</p>
+                    <p class="text-2xl font-black text-success-600">${{ history.totalSpent?.toFixed(2) }}</p>
+                  </CardContent>
+                </Card>
+                <Card class="group hover:-translate-y-1 transition-all">
+                  <CardContent class="p-5">
+                    <div class="w-9 h-9 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center text-accent-600 mb-3">
+                      <TrendingUpIcon class="w-5 h-5" />
                     </div>
-                  </div>
-                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Avg Ticket</p>
-                  <p class="text-2xl font-black text-accent-600">${{ (history.totalSpent / (history.totalOrders || 1)).toFixed(2) }}</p>
-                </div>
-                <div class="card-premium p-5 group hover:-translate-y-1 transition-all">
-                  <div class="flex items-center gap-3 mb-3">
-                    <div class="w-9 h-9 rounded-xl bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center text-warning-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4.5 h-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Avg Ticket</p>
+                    <p class="text-2xl font-black text-accent-600">${{ (history.totalSpent / (history.totalOrders || 1)).toFixed(2) }}</p>
+                  </CardContent>
+                </Card>
+                <Card class="group hover:-translate-y-1 transition-all">
+                  <CardContent class="p-5">
+                    <div class="w-9 h-9 rounded-xl bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center text-warning-600 mb-3">
+                      <CalendarIcon class="w-5 h-5" />
                     </div>
-                  </div>
-                  <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Last Visit</p>
-                  <p class="text-lg font-black text-neutral-700 dark:text-neutral-300">{{ history.lastVisit ? formatDate(history.lastVisit) : 'N/A' }}</p>
-                </div>
+                    <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-0.5">Last Visit</p>
+                    <p class="text-lg font-black text-neutral-700 dark:text-neutral-300">{{ history.lastVisit ? formatDate(history.lastVisit) : 'N/A' }}</p>
+                  </CardContent>
+                </Card>
               </div>
 
               <!-- Membership Progress -->
-              <div class="card-premium p-5 relative overflow-hidden mb-6">
-                <div class="flex items-center justify-between mb-3">
-                  <span class="text-xs font-black text-neutral-500 uppercase tracking-widest">Loyalty Progress</span>
-                  <span class="text-xs font-bold text-neutral-400">{{ history.loyaltyPoints }} / {{ nextTierThreshold }} pts → {{ nextTierName }}</span>
-                </div>
-                <div class="w-full h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
-                  <div class="h-full rounded-full transition-all duration-1000 relative" :class="tierProgressColor" :style="{ width: tierProgressPercent + '%' }">
-                    <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+              <Card class="relative overflow-hidden mb-6">
+                <CardContent class="p-5">
+                  <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-black text-neutral-500 uppercase tracking-widest">Loyalty Progress</span>
+                    <span class="text-xs font-bold text-neutral-400">{{ history.loyaltyPoints }} / {{ nextTierThreshold }} pts → {{ nextTierName }}</span>
                   </div>
-                </div>
-              </div>
+                  <div class="w-full h-3 bg-neutral-200 dark:bg-neutral-700 rounded-full overflow-hidden">
+                    <div class="h-full rounded-full transition-all duration-1000 relative" :class="tierProgressColor" :style="{ width: tierProgressPercent + '%' }">
+                      <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               <!-- Content Grid -->
               <div class="grid lg:grid-cols-3 gap-6 mb-6">
                 <!-- Favorite Items -->
-                <div class="card-premium p-6 relative overflow-hidden">
-                  <h3 class="text-sm font-black text-neutral-500 uppercase tracking-widest mb-6 flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-red-500" viewBox="0 0 24 24" fill="currentColor"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-                    Top Favorites
-                  </h3>
-                  <div class="space-y-3">
-                    <div 
-                      v-for="(item, idx) in history.favoriteItems" 
-                      :key="item.menuItemId" 
-                      class="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors group"
-                    >
-                      <div :class="[
-                        'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black text-white flex-shrink-0',
-                        idx === 0 ? 'bg-gradient-to-br from-warning-400 to-warning-600' :
-                        idx === 1 ? 'bg-gradient-to-br from-neutral-400 to-neutral-500' :
-                        'bg-gradient-to-br from-orange-400 to-orange-500'
-                      ]">#{{ idx + 1 }}</div>
-                      <div class="flex-1 overflow-hidden">
-                        <p class="font-bold text-neutral-900 dark:text-white truncate text-sm">{{ item.name }}</p>
-                        <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{{ item.orderCount }}x ordered</p>
+                <Card class="relative overflow-hidden">
+                  <CardContent class="p-6">
+                    <h3 class="text-sm font-black text-neutral-500 uppercase tracking-widest mb-6 flex items-center gap-2">
+                      <HeartIcon class="w-4 h-4 text-red-500" />
+                      Top Favorites
+                    </h3>
+                    <div class="space-y-3">
+                      <div 
+                        v-for="(item, idx) in history.favoriteItems" 
+                        :key="item.menuItemId" 
+                        class="flex items-center gap-3 p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-2xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors group"
+                      >
+                        <div :class="[
+                          'w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black text-white flex-shrink-0',
+                          idx === 0 ? 'bg-gradient-to-br from-warning-400 to-warning-600' :
+                          idx === 1 ? 'bg-gradient-to-br from-neutral-400 to-neutral-500' :
+                          'bg-gradient-to-br from-orange-400 to-orange-500'
+                        ]">#{{ idx + 1 }}</div>
+                        <div class="flex-1 overflow-hidden">
+                          <p class="font-bold text-neutral-900 dark:text-white truncate text-sm">{{ item.name }}</p>
+                          <p class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{{ item.orderCount }}x ordered</p>
+                        </div>
+                        <span class="text-sm font-black text-primary-600 group-hover:scale-110 transition-transform">${{ item.totalSpent?.toFixed(2) }}</span>
                       </div>
-                      <span class="text-sm font-black text-primary-600 group-hover:scale-110 transition-transform">${{ item.totalSpent?.toFixed(2) }}</span>
+                      <div v-if="!history.favoriteItems?.length" class="text-center py-12 text-neutral-400 italic text-xs">
+                        No purchase history available.
+                      </div>
                     </div>
-                    <div v-if="!history.favoriteItems?.length" class="text-center py-12 text-neutral-400 italic text-xs">
-                      No purchase history available.
-                    </div>
-                  </div>
-                </div>
+                  </CardContent>
+                </Card>
 
                 <!-- Recent Orders -->
-                <div class="lg:col-span-2 card p-0 overflow-hidden">
+                <Card class="lg:col-span-2 overflow-hidden">
                    <div class="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
                       <h3 class="text-sm font-black text-neutral-500 uppercase tracking-widest">Order History</h3>
                       <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{{ history.recentOrders?.length || 0 }} items</span>
                    </div>
-                   <div class="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-[400px] overflow-y-auto custom-scrollbar">
-                      <div 
-                        v-for="order in history.recentOrders" 
-                        :key="order.orderId" 
-                        class="p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer"
-                        @click="toggleOrderDetails(order.orderId)"
-                      >
-                        <div class="flex items-center justify-between">
-                          <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600">
-                               <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                   <CardContent class="p-0">
+                     <div class="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-[400px] overflow-y-auto custom-scrollbar">
+                        <div 
+                          v-for="order in history.recentOrders" 
+                          :key="order.orderId" 
+                          class="p-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors cursor-pointer"
+                          @click="toggleOrderDetails(order.orderId)"
+                        >
+                          <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                              <div class="w-12 h-12 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center text-primary-600">
+                                 <ShoppingBagIcon class="w-5 h-5" />
+                              </div>
+                              <div>
+                                <p class="font-black text-neutral-900 dark:text-white">{{ order.orderNo }}</p>
+                                <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{{ order.date }} at {{ order.time }}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p class="font-black text-neutral-900 dark:text-white">{{ order.orderNo }}</p>
-                              <p class="text-[10px] text-neutral-500 font-bold uppercase tracking-wider">{{ order.date }} at {{ order.time }}</p>
+                            <div class="text-right">
+                              <p class="text-lg font-black text-neutral-900 dark:text-white">${{ order.total?.toFixed(2) }}</p>
+                              <span :class="getStatusClass(order.status)" class="text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">{{ order.status }}</span>
                             </div>
                           </div>
-                          <div class="text-right">
-                            <p class="text-lg font-black text-neutral-900 dark:text-white">${{ order.total?.toFixed(2) }}</p>
-                            <span :class="getStatusClass(order.status)" class="text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest">{{ order.status }}</span>
+                          
+                          <!-- Expanded Details -->
+                          <div v-if="expandedOrderId === order.orderId" class="mt-6 pt-6 border-t border-neutral-200 dark:border-neutral-700 animate-in fade-in slide-in-from-top-2 duration-300">
+                            <div class="flex items-center gap-4 text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-4">
+                              <span>{{ order.orderType }}</span>
+                              <span v-if="order.paymentMethod" class="flex items-center gap-1"><div class="w-1 h-1 rounded-full bg-neutral-300"></div> {{ order.paymentMethod }}</span>
+                            </div>
+                            <div class="space-y-3 bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl">
+                              <div v-for="(item, idx) in order.items" :key="idx" class="flex justify-between items-center text-sm">
+                                <span class="text-neutral-700 dark:text-neutral-300 font-medium">
+                                  <span class="w-6 h-6 inline-flex items-center justify-center bg-white dark:bg-neutral-800 rounded mr-2 text-[10px] font-black border border-neutral-200 dark:border-neutral-700">{{ item.qty }}</span>
+                                  {{ item.name }}
+                                </span>
+                                <span class="font-bold text-neutral-500">${{ (item.price * item.qty).toFixed(2) }}</span>
+                              </div>
+                            </div>
                           </div>
                         </div>
                         
-                        <!-- Expanded Details -->
-                        <div v-if="expandedOrderId === order.orderId" class="mt-6 pt-6 border-t border-neutral-200 dark:border-neutral-700 animate-in fade-in slide-in-from-top-2 duration-300">
-                          <div class="flex items-center gap-4 text-[10px] font-black text-neutral-400 uppercase tracking-widest mb-4">
-                            <span>{{ order.orderType }}</span>
-                            <span v-if="order.paymentMethod" class="flex items-center gap-1"><div class="w-1 h-1 rounded-full bg-neutral-300"></div> {{ order.paymentMethod }}</span>
+                        <div v-if="!history.recentOrders?.length" class="text-center py-20 bg-neutral-50/20">
+                          <ClockIcon class="w-12 h-12 mx-auto mb-4 text-neutral-200" />
+                          <p class="text-sm text-neutral-400 font-medium">No order data available.</p>
+                        </div>
+                     </div>
+                   </CardContent>
+                </Card>
+              </div>
+
+              <!-- Loyalty Ledger -->
+              <Card class="overflow-hidden mb-6">
+                <div class="p-6 border-b border-neutral-100 dark:border-neutral-800 flex items-center justify-between">
+                  <div>
+                    <h3 class="text-sm font-black text-neutral-500 uppercase tracking-widest">Loyalty Ledger</h3>
+                    <p class="text-xs text-neutral-400 mt-1">Every earn, redeem, refund, and reversal for this customer</p>
+                  </div>
+                  <span class="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">{{ history.loyaltyTransactions?.length || 0 }} entries</span>
+                </div>
+                <CardContent class="p-0">
+                  <div class="divide-y divide-neutral-100 dark:divide-neutral-800 max-h-[360px] overflow-y-auto custom-scrollbar">
+                    <div
+                      v-for="tx in history.loyaltyTransactions"
+                      :key="tx.transactionId"
+                      class="p-4 flex items-center justify-between gap-4 hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
+                    >
+                      <div class="flex items-center gap-4 min-w-0">
+                        <div
+                          :class="[
+                            'w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm',
+                            tx.points >= 0
+                              ? 'bg-success-100 text-success-700 dark:bg-success-900/30 dark:text-success-400'
+                              : 'bg-error-100 text-error-700 dark:bg-error-900/30 dark:text-error-400'
+                          ]"
+                        >
+                          {{ tx.points >= 0 ? '+' : '' }}{{ tx.points }}
+                        </div>
+                        <div class="min-w-0">
+                          <div class="flex items-center gap-2 flex-wrap">
+                            <span class="text-sm font-black text-neutral-900 dark:text-white">{{ loyaltyTypeLabel(tx.type) }}</span>
+                            <span v-if="tx.orderNo" class="text-[10px] font-bold text-primary-600 bg-primary-50 dark:bg-primary-900/20 px-2 py-0.5 rounded-full">{{ tx.orderNo }}</span>
                           </div>
-                          <div class="space-y-3 bg-neutral-50 dark:bg-neutral-800/50 p-4 rounded-2xl">
-                            <div v-for="(item, idx) in order.items" :key="idx" class="flex justify-between items-center text-sm">
-                              <span class="text-neutral-700 dark:text-neutral-300 font-medium">
-                                <span class="w-6 h-6 inline-flex items-center justify-center bg-white dark:bg-neutral-800 rounded mr-2 text-[10px] font-black border border-neutral-200 dark:border-neutral-700">{{ item.qty }}</span>
-                                {{ item.name }}
-                              </span>
-                              <span class="font-bold text-neutral-500">${{ (item.price * item.qty).toFixed(2) }}</span>
-                            </div>
-                          </div>
+                          <p class="text-xs text-neutral-500 truncate max-w-md">{{ tx.note || 'No note' }}</p>
+                          <p class="text-[10px] text-neutral-400 font-bold uppercase tracking-wider mt-1">{{ tx.date }} at {{ tx.time }}</p>
                         </div>
                       </div>
-                      
-                      <div v-if="!history.recentOrders?.length" class="text-center py-20 bg-neutral-50/20">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 mx-auto mb-4 text-neutral-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12A9 9 0 1 1 12 3a9 9 0 0 1 9 9Z"/><path d="M12 8v4l3 3"/></svg>
-                        <p class="text-sm text-neutral-400 font-medium">No order data available.</p>
+                      <div class="text-right shrink-0">
+                        <p class="text-[10px] font-black text-neutral-400 uppercase tracking-widest">Balance</p>
+                        <p class="text-lg font-black text-neutral-900 dark:text-white">{{ tx.balanceAfter }} pts</p>
                       </div>
-                   </div>
-                </div>
-              </div>
+                    </div>
+
+                    <div v-if="!history.loyaltyTransactions?.length" class="text-center py-16 bg-neutral-50/20">
+                      <AwardIcon class="w-12 h-12 mx-auto mb-4 text-neutral-200" />
+                      <p class="text-sm text-neutral-400 font-medium">No loyalty transactions yet.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
            </template>
 
            <!-- Empty State: Choose a Customer -->
            <div v-else class="h-full flex flex-col items-center justify-center p-12 bg-neutral-50 dark:bg-neutral-800/30 rounded-[40px] text-center border-2 border-dashed border-neutral-200 dark:border-neutral-800">
-              <div class="w-24 h-24 rounded-full bg-white dark:bg-neutral-800 flex items-center justify-center shadow-2xl shadow-primary-500/10 mb-8">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="w-12 h-12 text-neutral-300 dark:text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-              </div>
+               <div class="w-24 h-24 rounded-full bg-white dark:bg-neutral-800 flex items-center justify-center shadow-2xl shadow-primary-500/10 mb-8">
+                  <UsersIcon class="w-12 h-12 text-neutral-300 dark:text-neutral-600" />
+               </div>
               <h3 class="text-2xl font-black text-neutral-900 dark:text-white mb-3">Select a Customer</h3>
               <p class="text-neutral-500 max-w-sm">Browse the list on the left or search to view detailed profiles, purchase habits, and loyalty history.</p>
            </div>
         </div>
       </div>
 
-      <!-- Customer Modal (Add/Edit) -->
-      <div v-if="showModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-         <div class="bg-white dark:bg-neutral-900 rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 animate-in fade-in zoom-in duration-300 max-h-[90vh] overflow-y-auto">
-            <div class="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/30 sticky top-0 z-10">
-               <h3 class="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">{{ editingCustomer ? 'Update CRM Profile' : 'New Customer' }}</h3>
-               <button @click="closeModal" class="text-neutral-400 hover:text-neutral-600 transition-colors">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-               </button>
+      <Dialog v-model:open="showModal">
+        <DialogContent class="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{{ editingCustomer ? 'Update CRM Profile' : 'New Customer' }}</DialogTitle>
+          </DialogHeader>
+          <form @submit.prevent="saveCustomer" class="space-y-5">
+            <div class="grid grid-cols-2 gap-4">
+              <div class="col-span-2 space-y-2">
+                <Label>Full Name</Label>
+                <Input v-model="form.name" type="text" required placeholder="Customer Name" />
+              </div>
+              <div class="space-y-2">
+                <Label>Phone Number</Label>
+                <Input v-model="form.phone" type="text" required placeholder="+855 ..." />
+              </div>
+              <div class="space-y-2">
+                <Label>Email</Label>
+                <Input v-model="form.email" type="email" placeholder="email@example.com" />
+              </div>
             </div>
-            
-            <form @submit.prevent="saveCustomer" class="p-8 space-y-5">
-               <div class="grid grid-cols-2 gap-4">
-                  <div class="col-span-2">
-                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Full Name</label>
-                    <input v-model="form.name" type="text" required class="input-modern w-full" placeholder="Customer Name" />
-                  </div>
-                  <div>
-                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Phone Number</label>
-                    <input v-model="form.phone" type="text" required class="input-modern w-full" placeholder="+855 ..." />
-                  </div>
-                  <div>
-                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Email</label>
-                    <input v-model="form.email" type="email" class="input-modern w-full" placeholder="email@example.com" />
-                  </div>
-               </div>
+            <div class="grid grid-cols-2 gap-4">
+              <div class="space-y-2">
+                <Label>Gender</Label>
+                <Select v-model="form.gender">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Not Set" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Not Set</SelectItem>
+                    <SelectItem value="MALE">Male</SelectItem>
+                    <SelectItem value="FEMALE">Female</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div class="space-y-2">
+                <Label>Date of Birth</Label>
+                <Input v-model="form.dob" type="date" />
+              </div>
+            </div>
+            <div class="space-y-2">
+              <Label>Address</Label>
+              <Input v-model="form.address" type="text" placeholder="Street, City" />
+            </div>
+            <div class="space-y-2">
+              <Label>Notes</Label>
+              <Textarea v-model="form.notes" placeholder="Allergies, preferences, etc." />
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="secondary" @click="closeModal">Cancel</Button>
+            <Button type="submit" variant="default" :disabled="saving" @click="saveCustomer">{{ editingCustomer ? 'Save Profile' : 'Register Member' }}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-               <div class="grid grid-cols-2 gap-4">
-                  <div>
-                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Gender</label>
-                    <select v-model="form.gender" class="input-modern w-full">
-                      <option value="">Not Set</option>
-                      <option value="MALE">Male</option>
-                      <option value="FEMALE">Female</option>
-                      <option value="OTHER">Other</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Date of Birth</label>
-                    <input v-model="form.dob" type="date" class="input-modern w-full" />
-                  </div>
-               </div>
-
-               <div>
-                 <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Address</label>
-                 <input v-model="form.address" type="text" class="input-modern w-full" placeholder="Street, City" />
-               </div>
-
-               <div>
-                 <label class="text-[10px] font-black text-neutral-400 uppercase tracking-widest ml-1 mb-2 block">Notes</label>
-                 <textarea v-model="form.notes" rows="2" class="input-modern w-full resize-none" placeholder="Allergies, preferences, etc."></textarea>
-               </div>
-
-               <div class="flex gap-4 pt-2">
-                  <button type="button" @click="closeModal" class="flex-1 py-4 text-sm font-bold text-neutral-500 hover:text-neutral-800 dark:hover:text-white transition-colors">Cancel</button>
-                  <button type="submit" class="flex-1 btn-primary py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl shadow-primary-500/20" :disabled="saving">
-                     {{ editingCustomer ? 'Save Profile' : 'Register Member' }}
-                  </button>
-               </div>
-            </form>
-         </div>
-      </div>
+      <Dialog v-model:open="showAdjustmentModal">
+        <DialogContent class="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adjust Loyalty Points</DialogTitle>
+            <DialogDescription v-if="history">{{ history.customerName }} currently has {{ history.loyaltyPoints }} pts</DialogDescription>
+          </DialogHeader>
+          <form @submit.prevent="saveLoyaltyAdjustment" class="space-y-5">
+            <div class="space-y-2">
+              <Label>Point Change</Label>
+              <Input v-model.number="adjustmentForm.points" type="number" required step="1" placeholder="Example: 10 or -5" />
+              <p class="text-[11px] text-neutral-500">Use positive points to add. Use negative points to remove.</p>
+            </div>
+            <div class="space-y-2">
+              <Label>Reason</Label>
+              <Textarea v-model="adjustmentForm.reason" required placeholder="Example: Corrected missing points from receipt #123" />
+            </div>
+            <div class="rounded-2xl bg-neutral-50 dark:bg-neutral-800/60 p-4 flex items-center justify-between">
+              <span class="text-xs font-bold text-neutral-500">Balance after save</span>
+              <span class="text-lg font-black text-neutral-900 dark:text-white">{{ adjustmentPreviewBalance }} pts</span>
+            </div>
+          </form>
+          <DialogFooter>
+            <Button variant="secondary" @click="closeAdjustmentModal">Cancel</Button>
+            <Button type="submit" variant="default" :disabled="savingAdjustment || !adjustmentForm.points || !adjustmentForm.reason.trim()" @click="saveLoyaltyAdjustment">{{ savingAdjustment ? 'Saving...' : 'Save Adjustment' }}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   </NuxtLayout>
@@ -375,6 +471,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
+import { SearchIcon, UserPlusIcon, ShoppingBagIcon, DollarSignIcon, TrendingUpIcon, CalendarIcon, PhoneIcon, CalendarDaysIcon, StarIcon, HeartIcon, ClockIcon, AwardIcon, UsersIcon } from '@lucide/vue'
 
 definePageMeta({
   layout: false
@@ -404,6 +501,19 @@ interface CustomerHistory {
   membershipLevel: string
   recentOrders: any[]
   favoriteItems: any[]
+  loyaltyTransactions: LoyaltyTransaction[]
+}
+
+interface LoyaltyTransaction {
+  transactionId: number
+  orderId?: number
+  orderNo?: string
+  type: string
+  points: number
+  balanceAfter: number
+  note?: string
+  date?: string
+  time?: string
 }
 
 // State
@@ -416,10 +526,14 @@ const searchResults = ref<Customer[]>([])
 const history = ref<CustomerHistory | null>(null)
 const selectedCustomerId = ref<number | null>(null)
 const expandedOrderId = ref<number | null>(null)
+const silverThreshold = ref(300)
+const goldThreshold = ref(1000)
 
 // Modal State
 const showModal = ref(false)
 const editingCustomer = ref<any>(null)
+const showAdjustmentModal = ref(false)
+const savingAdjustment = ref(false)
 const form = reactive({
   name: '',
   phone: '',
@@ -428,6 +542,10 @@ const form = reactive({
   dob: '',
   address: '',
   notes: ''
+})
+const adjustmentForm = reactive({
+  points: 0,
+  reason: ''
 })
 
 // Computed
@@ -445,18 +563,16 @@ const avgCustomerSpend = computed(() => {
 const goldMemberCount = computed(() => customers.value.filter((c: any) => c.membershipLevel === 'GOLD').length)
 
 // Membership Tier Progress
-const tierThresholds: Record<string, { next: string, threshold: number }> = {
-  BRONZE: { next: 'SILVER', threshold: 500 },
-  SILVER: { next: 'GOLD', threshold: 1500 },
-  GOLD: { next: 'MAX', threshold: 1500 },
-}
 const nextTierName = computed(() => {
   const tier = history.value?.membershipLevel || 'BRONZE'
-  return tierThresholds[tier]?.next || 'MAX'
+  if (tier === 'BRONZE') return 'SILVER'
+  if (tier === 'SILVER') return 'GOLD'
+  return 'MAX'
 })
 const nextTierThreshold = computed(() => {
   const tier = history.value?.membershipLevel || 'BRONZE'
-  return tierThresholds[tier]?.threshold || 1500
+  if (tier === 'BRONZE') return silverThreshold.value
+  return goldThreshold.value
 })
 const tierProgressPercent = computed(() => {
   const pts = history.value?.loyaltyPoints || 0
@@ -469,6 +585,11 @@ const tierProgressColor = computed(() => {
   if (tier === 'SILVER') return 'bg-gradient-to-r from-neutral-400 to-neutral-600'
   return 'bg-gradient-to-r from-orange-400 to-orange-600'
 })
+const adjustmentPreviewBalance = computed(() => {
+  const currentPoints = history.value?.loyaltyPoints || 0
+  const change = Number.isFinite(Number(adjustmentForm.points)) ? Number(adjustmentForm.points) : 0
+  return Math.max(0, currentPoints + change)
+})
 
 // Actions
 const fetchAllCustomers = async () => {
@@ -480,6 +601,21 @@ const fetchAllCustomers = async () => {
     console.error('Failed to fetch customers', err)
   } finally {
     loading.value = false
+  }
+}
+
+const fetchLoyaltySettings = async () => {
+  try {
+    const data = await get<any[]>('/settings')
+    const settingValue = (key: string, fallback: number) => {
+      const raw = data?.find((s: any) => s.key === key)?.value
+      const parsed = Number.parseInt(raw, 10)
+      return Number.isFinite(parsed) ? parsed : fallback
+    }
+    silverThreshold.value = settingValue('LOYALTY_SILVER_THRESHOLD', 300)
+    goldThreshold.value = settingValue('LOYALTY_GOLD_THRESHOLD', 1000)
+  } catch (err) {
+    console.error('Failed to fetch loyalty settings', err)
   }
 }
 
@@ -557,6 +693,16 @@ const closeModal = () => {
   showModal.value = false
 }
 
+const openAdjustmentModal = () => {
+  adjustmentForm.points = 0
+  adjustmentForm.reason = ''
+  showAdjustmentModal.value = true
+}
+
+const closeAdjustmentModal = () => {
+  showAdjustmentModal.value = false
+}
+
 const saveCustomer = async () => {
   saving.value = true
   try {
@@ -572,6 +718,30 @@ const saveCustomer = async () => {
     toast.error(err.data?.message || 'Failed to save customer')
   } finally {
     saving.value = false
+  }
+}
+
+const saveLoyaltyAdjustment = async () => {
+  if (!history.value || !adjustmentForm.points || !adjustmentForm.reason.trim()) return
+
+  savingAdjustment.value = true
+  try {
+    await post(`/customers/${history.value.customerId}/loyalty-adjustments`, {
+      points: Number(adjustmentForm.points),
+      reason: adjustmentForm.reason.trim()
+    })
+    toast.success('Loyalty points adjusted')
+    closeAdjustmentModal()
+    const customerId = history.value.customerId
+    await fetchAllCustomers()
+    const refreshed = customers.value.find((customer) => customer.customerId === customerId)
+    if (refreshed) {
+      await selectCustomer(refreshed)
+    }
+  } catch (err: any) {
+    toast.error(err.data?.message || 'Failed to adjust loyalty points')
+  } finally {
+    savingAdjustment.value = false
   }
 }
 
@@ -600,27 +770,24 @@ const getMemberBadgeClass = (level: string) => {
   return 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
 }
 
+const loyaltyTypeLabel = (type: string) => {
+  const labels: Record<string, string> = {
+    EARN: 'Earned Points',
+    REDEEM: 'Redeemed Points',
+    REFUND_REDEEM: 'Refunded Redemption',
+    REVERT_EARN: 'Reversed Earned Points',
+    ADJUSTMENT: 'Manual Adjustment',
+  }
+  return labels[type] || type
+}
+
 onMounted(() => {
+  fetchLoyaltySettings()
   fetchAllCustomers()
 })
 </script>
 
 <style scoped>
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white rounded-xl px-6 py-3 transition-all active:scale-95 disabled:opacity-50 font-bold text-sm shadow-lg shadow-primary-500/20;
-}
-.input-modern {
-  @apply bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 placeholder-neutral-400 transition-all;
-}
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  @apply bg-transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-neutral-200 dark:bg-neutral-800 rounded-full;
-}
 @keyframes shimmer {
   0% { transform: translateX(-100%); }
   100% { transform: translateX(100%); }

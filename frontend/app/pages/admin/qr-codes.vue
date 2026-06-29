@@ -1,112 +1,65 @@
 <template>
-  <div>
-    <!-- Page header -->
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
-          QR Table Codes
-        </h1>
-        <p class="text-neutral-500 dark:text-neutral-400 mt-1">
-          Generate QR codes for customer table ordering
-        </p>
-      </div>
-    </div>
+  <NuxtLayout name="admin">
+    <div class="space-y-6">
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>QR Table Codes</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
-    <!-- Config section -->
-    <div class="card p-6 mb-6">
-      <h2 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">
-        Configuration
-      </h2>
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-2xl font-bold text-neutral-900 dark:text-white">QR Table Codes</h2>
+          <p class="text-neutral-500 mt-1">Generate QR codes for customer table ordering</p>
+        </div>
+      </div>
+
+    <Card class="mb-6">
+      <CardContent class="p-6">
+      <h2 class="text-lg font-semibold text-neutral-900 dark:text-white mb-4">Configuration</h2>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <!-- Branch selector -->
-        <div>
-          <label class="label">Branch</label>
-          <select v-model="selectedBranch" class="input">
-            <option value="" disabled>Select a branch</option>
-            <option
-              v-for="branch in branches"
-              :key="branch.branchId"
-              :value="branch"
-            >
-              {{ branch.name }} ({{ branch.code }})
-            </option>
-          </select>
+        <div class="space-y-2">
+          <Label>Branch</Label>
+          <Select v-model="selectedBranch">
+            <SelectTrigger>
+              <SelectValue placeholder="Select a branch" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem v-for="branch in branches" :key="branch.branchId" :value="branch">
+                {{ branch.name }} ({{ branch.code }})
+              </SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <!-- Domain -->
-        <div>
-          <label class="label">Menu Base URL</label>
-          <input
-            v-model="baseUrl"
-            type="text"
-            class="input"
-            placeholder="https://yourdomain.com"
-          />
-          <p class="text-xs text-neutral-400 mt-1">
-            URL where customers can access the menu
-          </p>
+        <div class="space-y-2">
+          <Label>Menu Base URL</Label>
+          <Input v-model="baseUrl" type="text" placeholder="https://yourdomain.com" />
+          <p class="text-xs text-neutral-400">URL where customers can access the menu</p>
         </div>
 
-        <!-- Number of tables -->
-        <div>
-          <label class="label">Number of Tables</label>
-          <input
-            v-model.number="numberOfTables"
-            type="number"
-            min="1"
-            max="100"
-            class="input"
-            @change="generateQRCodes"
-          />
+        <div class="space-y-2">
+          <Label>Number of Tables</Label>
+          <Input v-model.number="numberOfTables" type="number" min="1" max="100" @change="generateQRCodes" />
         </div>
       </div>
 
       <div class="flex gap-3 mt-6">
-        <button
-          @click="saveConfiguration"
-          :disabled="!selectedBranch || isSaving"
-          class="btn-primary"
-        >
-          <svg
-            v-if="!isSaving"
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
-            />
-          </svg>
-          <span v-else class="loading loading-spinner loading-xs"></span>
+        <Button @click="saveConfiguration" :disabled="!selectedBranch || isSaving">
+          <SaveIcon v-if="!isSaving" class="w-4 h-4" />
+          <span v-else class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
           Save Configuration
-        </button>
-        <button
-          v-if="qrCodes.length > 0"
-          @click="printAll"
-          class="btn-secondary"
-        >
-          <svg
-            class="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-            />
-          </svg>
+        </Button>
+        <Button v-if="qrCodes.length > 0" @click="printAll" variant="secondary">
+          <PrinterIcon class="w-4 h-4" />
           Print All
-        </button>
+        </Button>
       </div>
-    </div>
+      </CardContent>
+    </Card>
 
     <!-- QR Codes grid -->
     <div
@@ -114,11 +67,12 @@
       id="qr-print-area"
       class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
     >
-      <div
+      <Card
         v-for="qr in qrCodes"
         :key="qr.tableNo"
-        class="card p-6 text-center hover:shadow-lg transition-shadow print:break-inside-avoid print:shadow-none print:border print:border-neutral-300"
+        class="text-center hover:shadow-lg transition-shadow print:break-inside-avoid print:shadow-none print:border print:border-neutral-300"
       >
+        <CardContent class="p-6">
         <div class="mb-3">
           <span
             class="text-xs font-semibold uppercase tracking-wider text-primary-600 dark:text-primary-400"
@@ -146,50 +100,23 @@
         <p class="text-xs text-neutral-400 mt-1 break-all">{{ qr.url }}</p>
 
         <div class="flex gap-2 mt-4 print:hidden">
-          <button
-            @click="downloadQR(qr.tableNo)"
-            class="btn-ghost btn-sm flex-1 text-xs"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
-              />
-            </svg>
+          <Button @click="downloadQR(qr.tableNo)" variant="ghost" size="sm" class="flex-1 text-xs">
+            <DownloadIcon class="w-3.5 h-3.5" />
             Download
-          </button>
-          <button
-            @click="printSingle(qr.tableNo)"
-            class="btn-ghost btn-sm flex-1 text-xs"
-          >
-            <svg
-              class="w-3.5 h-3.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
-              />
-            </svg>
+          </Button>
+          <Button @click="printSingle(qr.tableNo)" variant="ghost" size="sm" class="flex-1 text-xs">
+            <PrinterIcon class="w-3.5 h-3.5" />
             Print
-          </button>
+          </Button>
         </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
 
     <!-- Empty state -->
-    <div v-else class="card p-12 text-center">
+    <div v-else>
+      <Card>
+      <CardContent class="p-12 text-center">
       <div class="text-6xl mb-4">📱</div>
       <h3 class="text-lg font-bold text-neutral-900 dark:text-white mb-2">
         No QR codes generated yet
@@ -197,25 +124,28 @@
       <p class="text-neutral-500 dark:text-neutral-400">
         Select a branch and click "Generate QR Codes" to create table QR codes.
       </p>
+      </CardContent>
+      </Card>
     </div>
-  </div>
+    </div>
+  </NuxtLayout>
 </template>
 
 <script setup lang="ts">
 import QrcodeVue from "qrcode.vue";
-definePageMeta({ layout: "admin" });
+import { SaveIcon, PrinterIcon, DownloadIcon } from '@lucide/vue'
 
-const { get } = useApi();
+definePageMeta({ layout: false });
 
-// State
+const { get, put } = useApi();
+const toast = useToast();
+
 const branches = ref<any[]>([]);
 const selectedBranch = ref<any>(null);
 const baseUrl = ref("");
 const numberOfTables = ref(10);
 const qrCodes = ref<{ tableNo: number; url: string }[]>([]);
 const isSaving = ref(false);
-const { put } = useApi();
-const { success, error: toastError } = useToast();
 
 // Fetch branches
 const fetchBranches = async () => {
@@ -265,10 +195,10 @@ const saveConfiguration = async () => {
     });
     // Update local branch data
     selectedBranch.value.tableCount = numberOfTables.value;
-    success("Configuration saved successfully");
+    toast.success("Configuration saved successfully");
   } catch (e) {
     console.error("Failed to save branch configuration:", e);
-    toastError("Failed to save configuration");
+    toast.error("Failed to save configuration");
   } finally {
     isSaving.value = false;
   }

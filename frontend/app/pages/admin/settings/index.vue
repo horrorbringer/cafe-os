@@ -1,7 +1,13 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb :items="[{ label: 'Settings' }]" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Settings</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div class="flex items-center justify-between">
@@ -16,100 +22,61 @@
       </div>
 
       <!-- Tabs -->
-      <div class="flex border-b border-neutral-200 dark:border-neutral-800">
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          @click="activeTab = tab.id"
-          :class="[
-            'px-6 py-3 text-sm font-medium transition-all relative',
-            activeTab === tab.id
-              ? 'text-primary-600 dark:text-primary-400'
-              : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300',
-          ]"
-        >
-          {{ tab.name }}
-          <div
-            v-if="activeTab === tab.id"
-            class="absolute bottom-0 left-0 right-0 h-0.5 bg-primary-600 dark:bg-primary-400"
-          ></div>
-        </button>
-      </div>
+      <Tabs v-model="activeTab">
+        <TabsList variant="line">
+          <TabsTrigger v-for="tab in tabs" :key="tab.id" :value="tab.id">{{ tab.name }}</TabsTrigger>
+        </TabsList>
 
       <!-- Tab Content: Users -->
-      <div v-if="activeTab === 'users'" class="space-y-4">
+      <TabsContent value="users" class="space-y-4">
         <div class="flex justify-between items-center">
           <div class="text-sm text-neutral-500">
             Total Users: {{ users.length }}
           </div>
-          <button
-            @click="openUserModal()"
-            class="btn-primary py-2 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-              <circle cx="9" cy="7" r="4" />
-              <line x1="19" y1="8" x2="19" y2="14" />
-              <line x1="16" y1="11" x2="22" y2="11" />
-            </svg>
+          <Button @click="openUserModal()">
+            <PlusIcon class="w-4 h-4" />
             Add User
-          </button>
+          </Button>
         </div>
 
         <div
           class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl overflow-hidden shadow-sm"
         >
-          <table class="w-full text-left">
-            <thead>
-              <tr
+          <Table>
+            <TableHeader>
+              <TableRow
                 class="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800"
               >
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase"
-                >
+                <TableHead>
                   Username
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase"
-                >
+                </TableHead>
+                <TableHead>
                   Linked Employee
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase"
-                >
+                </TableHead>
+                <TableHead>
                   Role
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase text-right"
-                >
+                </TableHead>
+                <TableHead class="text-right">
                   Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               <template v-if="loading">
-                <tr v-for="i in 5" :key="i" class="animate-pulse">
-                  <td v-for="j in 4" :key="j" class="px-6 py-4">
+                <TableRow v-for="i in 5" :key="i" class="animate-pulse">
+                  <TableCell v-for="j in 4" :key="j">
                     <div
                       class="h-4 bg-neutral-100 dark:bg-neutral-800 rounded"
                     ></div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               </template>
               <template v-else>
-                <tr
+                <TableRow
                   v-for="user in users"
                   :key="user.userId"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                 >
-                  <td class="px-6 py-4">
+                  <TableCell>
                     <div class="flex items-center gap-3">
                       <div
                         class="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-sm font-bold text-neutral-600 dark:text-neutral-400"
@@ -121,8 +88,8 @@
                         >{{ user.userName }}</span
                       >
                     </div>
-                  </td>
-                  <td class="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <span
                       v-if="user.employee"
                       class="text-neutral-600 dark:text-neutral-400"
@@ -131,61 +98,33 @@
                     <span v-else class="text-neutral-400 italic"
                       >No Employee linked</span
                     >
-                  </td>
-                  <td class="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <span
                       class="px-2 py-1 rounded-lg text-[10px] font-bold uppercase bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400"
                     >
                       {{ user.role?.roleName || "No Role" }}
                     </span>
-                  </td>
-                  <td class="px-6 py-4 text-right">
+                  </TableCell>
+                  <TableCell class="text-right">
                     <div class="flex items-center justify-end gap-2">
-                      <button
-                        @click="openUserModal(user)"
-                        class="p-2 text-neutral-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-4 h-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-                          />
-                        </svg>
-                      </button>
-                      <button
-                        @click="deleteUser(user.userId)"
-                        class="p-2 text-neutral-400 hover:text-error-600 transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-4 h-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                          />
-                        </svg>
-                      </button>
+                      <Button variant="ghost" size="icon" @click="openUserModal(user)">
+                        <PencilIcon class="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" @click="confirmDeleteUser(user.userId)">
+                        <Trash2Icon class="w-4 h-4" />
+                      </Button>
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               </template>
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
-      </div>
 
+      </TabsContent>
       <!-- Tab Content: Roles -->
-      <div v-if="activeTab === 'roles'" class="space-y-6">
+      <TabsContent value="roles" class="space-y-6">
         <div class="flex justify-between items-center">
           <div>
             <h3
@@ -197,23 +136,10 @@
               Define and configure access levels for your team
             </p>
           </div>
-          <button
-            @click="openRoleModal()"
-            class="bg-primary-600 hover:bg-primary-700 text-white px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            New Role
-          </button>
+          <Button @click="openRoleModal()">
+            <PlusIcon class="w-4 h-4" />
+            Create Role
+          </Button>
         </div>
 
         <!-- Role Cards Grid -->
@@ -238,48 +164,18 @@
                   <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
                 </svg>
               </div>
-              <div
-                class="flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0"
-              >
-                <button
-                  @click="openRoleModal(role)"
-                  class="p-2 rounded-xl bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                    ></path>
-                    <path
-                      d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                    ></path>
-                  </svg>
-                </button>
-                <button
+              <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-all translate-y-2 group-hover:translate-y-0">
+                <Button variant="ghost" size="icon" @click="openRoleModal(role)">
+                  <PencilIcon class="w-4 h-4" />
+                </Button>
+                <Button
                   v-if="role.roleName !== 'SUPER_ADMIN'"
-                  @click="deleteRole(role.roleId)"
-                  class="p-2 rounded-xl bg-red-100 dark:bg-red-900/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-sm"
+                  variant="ghost"
+                  size="icon"
+                  @click="confirmDeleteRole(role.roleId)"
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="w-4 h-4"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <polyline points="3 6 5 6 21 6"></polyline>
-                    <path
-                      d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                    ></path>
-                  </svg>
-                </button>
+                  <Trash2Icon class="w-4 h-4" />
+                </Button>
               </div>
             </div>
 
@@ -312,10 +208,10 @@
             </div>
           </div>
         </div>
-      </div>
 
+      </TabsContent>
       <!-- Tab Content: System Config -->
-      <div v-if="activeTab === 'config'" class="space-y-6">
+      <TabsContent value="config" class="space-y-6">
         <div
           class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm"
         >
@@ -323,9 +219,10 @@
             <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
               General Configuration
             </h3>
-            <button
+            <Button
               @click="saveSettings"
-              class="btn-primary py-2 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
+              variant="default"
+              class="py-2 px-4 text-xs font-bold uppercase tracking-wider flex items-center gap-2"
               :disabled="saving"
             >
               <svg
@@ -343,7 +240,7 @@
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
               Save Changes
-            </button>
+            </Button>
           </div>
 
           <div
@@ -388,10 +285,10 @@
             </div>
           </div>
         </div>
-      </div>
 
+      </TabsContent>
       <!-- Tab Content: Loyalty Program -->
-      <div v-if="activeTab === 'loyalty'" class="space-y-6">
+      <TabsContent value="loyalty" class="space-y-6">
         <div
           class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm"
         >
@@ -464,9 +361,46 @@
                       >Points per $1</span
                     >
                   </div>
-                  <p class="text-[10px] text-neutral-400 mt-1 italic">
-                    Example: 1 means $10 spent = 10 points
-                  </p>
+                  <div
+                    class="mt-3 rounded-lg border border-primary-200 bg-primary-50 p-3 text-xs text-primary-900 dark:border-primary-900/40 dark:bg-primary-950/30 dark:text-primary-200"
+                  >
+                    <p class="font-bold">
+                      Formula: order total x earn rate, rounded down.
+                    </p>
+                    <p class="mt-1">
+                      With current rate, $1.00 earns
+                      <strong>{{ earnPreviewOneDollar }}</strong> point(s), and
+                      $0.10 earns
+                      <strong>{{ earnPreviewTenCents }}</strong> point(s).
+                    </p>
+                    <p class="mt-1 text-primary-700 dark:text-primary-300">
+                      Use 1 for 1 point per $1. Use 10 for 1 point per $0.10.
+                      Use 0.1 for 1 point per $10.
+                    </p>
+                  </div>
+                  <div
+                    class="mt-3 rounded-lg border border-neutral-200 bg-white p-3 dark:border-neutral-700 dark:bg-neutral-900"
+                  >
+                    <label
+                      class="block text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2"
+                      >Test order total</label
+                    >
+                    <div class="flex items-center gap-3">
+                      <input
+                        v-model="loyaltyConfig.sampleOrderTotal"
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg px-3 py-2 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
+                      />
+                      <span class="text-sm font-black text-neutral-900 dark:text-white whitespace-nowrap">
+                        = {{ sampleEarnedPoints }} pts
+                      </span>
+                    </div>
+                    <p class="mt-2 text-[11px] text-neutral-500">
+                      Points are whole numbers, so decimal results are rounded down.
+                    </p>
+                  </div>
                 </div>
 
                 <div>
@@ -485,9 +419,21 @@
                       >Discount per point</span
                     >
                   </div>
-                  <p class="text-[10px] text-neutral-400 mt-1 italic">
-                    Example: 0.1 means 10 points = $1.00 discount
-                  </p>
+                  <div
+                    class="mt-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/30 dark:text-amber-200"
+                  >
+                    <p class="font-bold">
+                      Formula: points used x point value = discount.
+                    </p>
+                    <p class="mt-1">
+                      With current value, 1 point saves
+                      <strong>${{ redeemPreviewOnePoint }}</strong>, and 10
+                      points save <strong>${{ redeemPreviewTenPoints }}</strong>.
+                    </p>
+                    <p class="mt-1 text-amber-700 dark:text-amber-300">
+                      Use 0.1 if 10 points should equal $1.00 discount.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -561,10 +507,11 @@
           <div
             class="flex justify-end p-6 border-t border-neutral-100 dark:border-neutral-800 -mx-6 -mb-6"
           >
-            <button
+            <Button
               @click="saveLoyaltyConfig"
               :disabled="savingLoyalty"
-              class="btn-primary py-3 px-8 text-xs font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary-500/20"
+              variant="default"
+              class="py-3 px-8 text-xs font-bold uppercase tracking-widest flex items-center gap-2 shadow-xl shadow-primary-500/20"
             >
               <div
                 v-if="savingLoyalty"
@@ -586,13 +533,13 @@
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
               Apply Settings
-            </button>
+            </Button>
           </div>
         </div>
-      </div>
 
+      </TabsContent>
       <!-- Tab Content: Notifications -->
-      <div v-if="activeTab === 'notifications'" class="space-y-6">
+      <TabsContent value="notifications" class="space-y-6">
         <div
           class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-6 shadow-sm"
         >
@@ -677,13 +624,14 @@
           </div>
 
           <div class="flex gap-3 mb-8">
-            <button
+            <Button
               @click="saveTelegramConfig"
               :disabled="savingTelegram"
-              class="btn-primary py-2 px-4 text-xs font-bold uppercase tracking-wider"
+              variant="default"
+              class="py-2 px-4 text-xs font-bold uppercase tracking-wider"
             >
               Save Configuration
-            </button>
+            </Button>
             <button
               @click="testTelegram"
               :disabled="testingTelegram"
@@ -795,264 +743,95 @@
             </div>
           </div>
         </div>
-      </div>
+      </TabsContent>
+    </Tabs>
 
       <!-- User Modal -->
-      <div
-        v-show="showUserModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-neutral-200 dark:border-neutral-800"
-        >
-          <div
-            class="p-8 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/50"
-          >
-            <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
-              {{ editingUser ? "Edit User Account" : "New User Account" }}
-            </h3>
-            <button
-              @click="showUserModal = false"
-              class="text-neutral-400 hover:text-neutral-600 dark:hover:text-white transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <line x1="18" y1="6" x2="6" y2="18" />
-                <line x1="6" y1="6" x2="18" y2="18" />
-              </svg>
-            </button>
-          </div>
-
-          <form @submit.prevent="saveUser" class="p-8 space-y-6">
-            <div class="space-y-4">
-              <div>
-                <label
-                  class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2"
-                  >Username</label
-                >
-                <input
-                  v-model="userForm.userName"
-                  type="text"
-                  required
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 placeholder-neutral-400"
-                  placeholder="Enter username"
-                />
-              </div>
-
-              <div>
-                <label
-                  class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2"
-                  >Password</label
-                >
-                <input
-                  v-model="userForm.password"
-                  type="password"
-                  :required="!editingUser"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 placeholder-neutral-400"
-                  :placeholder="
-                    editingUser
-                      ? 'Leave blank to keep current'
-                      : 'Enter password'
-                  "
-                />
-              </div>
-
-              <div class="grid grid-cols-1 gap-4">
-                <div>
-                  <label
-                    class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2"
-                    >Link Employee</label
-                  >
-                  <select
-                    v-model="userForm.employeeId"
-                    required
-                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option :value="null" disabled>Select an employee</option>
-                    <option
-                      v-for="emp in employees"
-                      :key="emp.employeeId"
-                      :value="emp.employeeId"
-                    >
-                      {{ emp.fullName }} ({{ emp.position }})
-                    </option>
-                  </select>
-                </div>
-
-                <div>
-                  <label
-                    class="block text-xs font-bold text-neutral-500 uppercase tracking-widest mb-2"
-                    >Assign Role</label
-                  >
-                  <select
-                    v-model="userForm.roleId"
-                    required
-                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                  >
-                    <option :value="null" disabled>Select a role</option>
-                    <option
-                      v-for="role in roles"
-                      :key="role.roleId"
-                      :value="role.roleId"
-                    >
-                      {{ role.roleName }}
-                    </option>
-                  </select>
-                </div>
-              </div>
+      <Dialog v-model:open="showUserModal">
+        <DialogContent class="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{{ editingUser ? "Edit User Account" : "New User Account" }}</DialogTitle>
+          </DialogHeader>
+          <form @submit.prevent="saveUser" class="space-y-4">
+            <div class="space-y-2">
+              <Label>Username</Label>
+              <Input v-model="userForm.userName" type="text" required placeholder="Enter username" />
             </div>
-
-            <div class="flex gap-3 pt-4">
-              <button
-                type="button"
-                @click="showUserModal = false"
-                class="flex-1 py-4 text-sm font-bold text-neutral-500 hover:text-neutral-800 dark:hover:text-white transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                class="flex-1 btn-primary py-4 rounded-2xl font-bold uppercase tracking-widest shadow-xl shadow-primary-500/20"
-                :disabled="saving"
-              >
-                {{ editingUser ? "Update User" : "Create User" }}
-              </button>
+            <div class="space-y-2">
+              <Label>Password</Label>
+              <Input v-model="userForm.password" type="password" :required="!editingUser" :placeholder="editingUser ? 'Leave blank to keep current' : 'Enter password'" />
+            </div>
+            <div class="space-y-2">
+              <Label>Link Employee</Label>
+              <Select v-model="selectedUserEmployeeId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select an employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="emp in employees" :key="emp.employeeId" :value="String(emp.employeeId)">
+                    {{ emp.fullName }} ({{ emp.position }})
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="space-y-2">
+              <Label>Assign Role</Label>
+              <Select v-model="selectedUserRoleId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="role in roles" :key="role.roleId" :value="String(role.roleId)">
+                    {{ role.roleName }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </form>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button variant="secondary" @click="showUserModal = false">Cancel</Button>
+            <Button type="submit" variant="default" :disabled="saving" @click="saveUser">
+              {{ editingUser ? "Update User" : "Create User" }}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <!-- Role Modal -->
-      <div
-        v-if="showRoleModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-[2.5rem] shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden animate-scale-in"
-        >
-          <div
-            class="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center shrink-0 bg-neutral-50/30 dark:bg-neutral-800/20"
-          >
-            <h2 class="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">
-              {{ editingRole ? "Edit Role Profile" : "Create New System Role" }}
-            </h2>
-            <button
-              @click="showRoleModal = false"
-              class="w-10 h-10 flex items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-500 hover:bg-neutral-200 dark:hover:bg-neutral-700 hover:text-neutral-900 dark:hover:text-white transition-all active:scale-90"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                stroke-width="2.5"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  d="M6 18L12 12M18 6L6 18"
-                />
-              </svg>
-            </button>
+      <Dialog v-model:open="showRoleModal">
+        <DialogContent class="sm:max-w-5xl bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 !p-0 flex flex-col max-h-[90vh]" :show-close-button="false">
+          <div class="p-8 border-b border-neutral-100 dark:border-neutral-800 flex justify-between items-center shrink-0 bg-neutral-50/30 dark:bg-neutral-800/20">
+            <h2 class="text-2xl font-black text-neutral-900 dark:text-white tracking-tight">{{ editingRole ? "Edit Role Profile" : "Create New System Role" }}</h2>
           </div>
-
           <div class="p-8 overflow-y-auto flex-1 custom-scrollbar">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <!-- Basic Info -->
               <div class="space-y-6">
                 <div>
-                  <label class="block text-sm font-medium text-neutral-400 mb-2"
-                    >Role Name</label
-                  >
-                  <input
-                    v-model="roleForm.roleName"
-                    type="text"
-                    placeholder="e.g. Store Manager"
-                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-neutral-900 dark:text-white ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-bold tracking-wide transition-all uppercase placeholder:font-normal placeholder:lowercase"
-                  />
+                  <label class="block text-sm font-medium text-neutral-400 mb-2">Role Name</label>
+                  <input v-model="roleForm.roleName" type="text" placeholder="e.g. Store Manager" class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-neutral-900 dark:text-white ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 font-bold tracking-wide transition-all uppercase placeholder:font-normal placeholder:lowercase" />
                 </div>
                 <div>
-                  <label class="block text-sm font-medium text-neutral-400 mb-2"
-                    >Description</label
-                  >
-                  <textarea
-                    v-model="roleForm.description"
-                    rows="4"
-                    placeholder="Provide a brief summary of this role's purpose..."
-                    class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-neutral-900 dark:text-white ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-all resize-none placeholder:font-normal text-sm"
-                  ></textarea>
+                  <label class="block text-sm font-medium text-neutral-400 mb-2">Description</label>
+                  <textarea v-model="roleForm.description" rows="4" placeholder="Provide a brief summary of this role's purpose..." class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-2xl px-5 py-4 text-neutral-900 dark:text-white ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-all resize-none placeholder:font-normal text-sm"></textarea>
                 </div>
-
-                <div
-                  class="p-6 rounded-2xl bg-primary-500/5 border border-primary-500/10"
-                >
-                  <h4
-                    class="text-xs font-bold text-primary-400 uppercase tracking-widest mb-2"
-                  >
-                    Security Impact
-                  </h4>
-                  <p class="text-xs text-neutral-400 leading-relaxed">
-                    This role will grant access to
-                    <strong>{{ roleForm.permissionIds.length }}</strong>
-                    specific system capabilities. Changes will take effect for
-                    all assigned users upon their next session.
-                  </p>
+                <div class="p-6 rounded-2xl bg-primary-500/5 border border-primary-500/10">
+                  <h4 class="text-xs font-bold text-primary-400 uppercase tracking-widest mb-2">Security Impact</h4>
+                  <p class="text-xs text-neutral-400 leading-relaxed">This role will grant access to <strong>{{ roleForm.permissionIds.length }}</strong> specific system capabilities. Changes will take effect for all assigned users upon their next session.</p>
                 </div>
               </div>
-
-              <!-- Permission Groups -->
               <div class="space-y-4">
-                <label class="block text-sm font-medium text-neutral-400 mb-0"
-                  >Permissions Portfolio</label
-                >
-                <div
-                  class="space-y-6 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar"
-                >
-                  <div
-                    v-for="(perms, group) in groupedPermissions"
-                    :key="group"
-                    class="space-y-3"
-                  >
+                <label class="block text-sm font-medium text-neutral-400 mb-0">Permissions Portfolio</label>
+                <div class="space-y-6 max-h-[600px] overflow-y-auto pr-4 custom-scrollbar">
+                  <div v-for="(perms, group) in groupedPermissions" :key="group" class="space-y-3">
                     <div class="flex items-center gap-2">
-                      <span
-                        class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest"
-                        >{{ group }}</span
-                      >
+                      <span class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest">{{ group }}</span>
                       <div class="flex-1 h-px bg-neutral-700/50"></div>
                     </div>
                     <div class="grid grid-cols-1 gap-2">
-                      <label
-                        v-for="perm in perms"
-                        :key="perm.permissionId"
-                        class="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-neutral-800/50 hover:bg-white dark:hover:bg-neutral-800 border border-neutral-100 dark:border-neutral-800 hover:border-primary-200 dark:hover:border-primary-900 transition-all cursor-pointer group hover:shadow-lg hover:shadow-primary-500/5 active:scale-[0.98]"
-                      >
-                        <input
-                          type="checkbox"
-                          :value="perm.permissionId"
-                          v-model="roleForm.permissionIds"
-                          class="w-4 h-4 rounded border-neutral-700 bg-neutral-800 text-primary-500 focus:ring-primary-500 transition-all cursor-pointer"
-                        />
+                      <label v-for="perm in perms" :key="perm.permissionId" class="flex items-center gap-3 p-4 rounded-2xl bg-white dark:bg-neutral-800/50 hover:bg-white dark:hover:bg-neutral-800 border border-neutral-100 dark:border-neutral-800 hover:border-primary-200 dark:hover:border-primary-900 transition-all cursor-pointer group hover:shadow-lg hover:shadow-primary-500/5 active:scale-[0.98]">
+                        <input type="checkbox" :value="perm.permissionId" v-model="roleForm.permissionIds" class="w-4 h-4 rounded border-neutral-700 bg-neutral-800 text-primary-500 focus:ring-primary-500 transition-all cursor-pointer" />
                         <div class="flex-1 min-w-0">
-                          <div
-                            class="text-xs font-bold text-neutral-200 group-hover:text-white transition-colors uppercase whitespace-nowrap overflow-hidden text-ellipsis"
-                          >
-                            {{ perm.code.replace(/_/g, " ") }}
-                          </div>
-                          <div
-                            class="text-[9px] text-neutral-500 truncate mt-0.5"
-                          >
-                            {{
-                              perm.description ||
-                              "Access to " + group.toLowerCase() + " features"
-                            }}
-                          </div>
+                          <div class="text-xs font-bold text-neutral-200 group-hover:text-white transition-colors uppercase whitespace-nowrap overflow-hidden text-ellipsis">{{ perm.code.replace(/_/g, " ") }}</div>
+                          <div class="text-[9px] text-neutral-500 truncate mt-0.5">{{ perm.description || "Access to " + group.toLowerCase() + " features" }}</div>
                         </div>
                       </label>
                     </div>
@@ -1061,89 +840,106 @@
               </div>
             </div>
           </div>
-
-          <div
-            class="p-8 border-t border-neutral-100 dark:border-neutral-800 flex justify-end gap-4 shrink-0 bg-neutral-50/50 dark:bg-neutral-800/20"
-          >
-            <button
-              @click="showRoleModal = false"
-              class="px-8 py-3.5 rounded-2xl border border-neutral-200 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-all font-bold text-sm uppercase tracking-widest"
-            >
-              Cancel
-            </button>
-            <button
-              @click="saveRole"
-              :disabled="saving || !roleForm.roleName"
-              class="btn-primary px-10 py-3.5 rounded-2xl flex items-center gap-3 disabled:opacity-50 text-sm uppercase tracking-widest font-black shadow-2xl shadow-primary-500/30"
-            >
-              <span
-                v-if="saving"
-                class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"
-              ></span>
+          <div class="p-8 border-t border-neutral-100 dark:border-neutral-800 flex justify-end gap-4 shrink-0 bg-neutral-50/50 dark:bg-neutral-800/20">
+            <Button variant="outline" @click="showRoleModal = false">Cancel</Button>
+            <Button @click="saveRole" :disabled="saving || !roleForm.roleName" variant="default" class="px-10 py-3.5 rounded-2xl flex items-center gap-3 disabled:opacity-50 text-sm uppercase tracking-widest font-black shadow-2xl shadow-primary-500/30">
+              <span v-if="saving" class="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
               {{ editingRole ? "Update Profile" : "Activate Role" }}
-            </button>
+            </Button>
           </div>
-        </div>
-      </div>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Delete User Confirmation -->
+      <AlertDialog v-model:open="showDeleteUserAlert">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete User</AlertDialogTitle>
+            <AlertDialogDescription>Are you sure you want to delete this user? This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction @click="executeDeleteUser">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <!-- Delete Role Confirmation -->
+      <AlertDialog v-model:open="showDeleteRoleAlert">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Role</AlertDialogTitle>
+            <AlertDialogDescription>Are you sure you want to delete this role? This action cannot be undone.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction @click="executeDeleteRole">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { ref, reactive, onMounted, watch, computed } from "vue"
+import { useRoute } from "vue-router"
+import { PlusIcon, PencilIcon, Trash2Icon, EyeIcon, EyeOffIcon, SendIcon, SettingsIcon, GiftIcon, BellIcon } from "@lucide/vue"
 
 definePageMeta({
   layout: false,
-});
+})
 
-const route = useRoute();
-const { get, post, put, del } = useApi();
-const toast = useToast();
-const { hasPermission } = usePermissions();
+const route = useRoute()
+const { get, post, put, del } = useApi()
+const toast = useToast()
+const { hasPermission } = usePermissions()
 
-// Tabs
 const tabs = [
   { id: "users", name: "User Accounts" },
   { id: "roles", name: "Roles & Access" },
   { id: "loyalty", name: "Loyalty Program" },
   { id: "notifications", name: "Notifications" },
   { id: "config", name: "System Config" },
-];
+]
 
-const activeTab = ref("users");
+const activeTab = ref("users")
 
-// Sync tab with query param
 onMounted(() => {
   if (route.query.tab && tabs.some((t) => t.id === route.query.tab)) {
-    activeTab.value = route.query.tab as string;
+    activeTab.value = route.query.tab as string
   }
-  fetchData();
-});
+  fetchData()
+})
 
 watch(
   () => route.query.tab,
   (newTab) => {
     if (newTab && tabs.some((t) => t.id === newTab)) {
-      activeTab.value = newTab as string;
+      activeTab.value = newTab as string
     }
   },
-);
+)
 
-// Data
-const users = ref<any[]>([]);
-const roles = ref<any[]>([]);
-const employees = ref<any[]>([]);
-const permissions = ref<any[]>([]);
-const settings = ref<any[]>([]);
-const loading = ref(true);
-const saving = ref(false);
+const users = ref<any[]>([])
+const roles = ref<any[]>([])
+const employees = ref<any[]>([])
+const permissions = ref<any[]>([])
+const settings = ref<any[]>([])
+const loading = ref(true)
+const saving = ref(false)
 
-// Modals & Forms
-const showUserModal = ref(false);
-const showRoleModal = ref(false);
-const editingUser = ref<any>(null);
-const editingRole = ref<any>(null);
+const showUserModal = ref(false)
+const showRoleModal = ref(false)
+const editingUser = ref<any>(null)
+const editingRole = ref<any>(null)
+const showDeleteUserAlert = ref(false)
+const showDeleteRoleAlert = ref(false)
+const userToDelete = ref<number | null>(null)
+const roleToDelete = ref<number | null>(null)
+
+const selectedUserEmployeeId = ref("")
+const selectedUserRoleId = ref("")
 
 const userForm = reactive({
   userName: "",
@@ -1151,7 +947,7 @@ const userForm = reactive({
   employeeId: null as number | null,
   roleId: null as number | null,
   isActive: true,
-});
+})
 
 const roleForm = reactive({
   roleName: "",
@@ -1197,7 +993,23 @@ const loyaltyConfig = reactive({
   redeemRate: 0.1,
   silverThreshold: 300,
   goldThreshold: 1000,
+  sampleOrderTotal: 10,
 });
+const earnPreviewOneDollar = computed(() =>
+  Math.floor(1 * Number(loyaltyConfig.earnRate || 0)),
+);
+const earnPreviewTenCents = computed(() =>
+  Math.floor(0.1 * Number(loyaltyConfig.earnRate || 0)),
+);
+const redeemPreviewOnePoint = computed(() =>
+  Number(loyaltyConfig.redeemRate || 0).toFixed(2),
+);
+const redeemPreviewTenPoints = computed(() =>
+  (10 * Number(loyaltyConfig.redeemRate || 0)).toFixed(2),
+);
+const sampleEarnedPoints = computed(() =>
+  Math.floor(Number(loyaltyConfig.sampleOrderTotal || 0) * Number(loyaltyConfig.earnRate || 0)),
+);
 const savingLoyalty = ref(false);
 const savingTelegram = ref(false);
 const testingTelegram = ref(false);
@@ -1312,53 +1124,69 @@ const fetchData = async () => {
 
 // User Actions
 const openUserModal = (user: any = null) => {
-  editingUser.value = user;
+  editingUser.value = user
   if (user) {
-    userForm.userName = user.userName;
-    userForm.password = ""; // Don't show password
-    userForm.employeeId = user.employee?.employeeId || null;
-    userForm.roleId = user.role?.roleId || null;
-    userForm.isActive = user.isActive ?? true;
+    userForm.userName = user.userName
+    userForm.password = ""
+    userForm.employeeId = user.employee?.employeeId || null
+    userForm.roleId = user.role?.roleId || null
+    userForm.isActive = user.isActive ?? true
+    selectedUserEmployeeId.value = user.employee?.employeeId ? String(user.employee.employeeId) : ""
+    selectedUserRoleId.value = user.role?.roleId ? String(user.role.roleId) : ""
   } else {
-    userForm.userName = "";
-    userForm.password = "";
-    userForm.employeeId = null;
-    userForm.roleId = null;
-    userForm.isActive = true;
+    userForm.userName = ""
+    userForm.password = ""
+    userForm.employeeId = null
+    userForm.roleId = null
+    userForm.isActive = true
+    selectedUserEmployeeId.value = ""
+    selectedUserRoleId.value = ""
   }
-  showUserModal.value = true;
-};
+  showUserModal.value = true
+}
 
 const saveUser = async () => {
-  saving.value = true;
+  saving.value = true
   try {
-    const payload = { ...userForm };
-    if (editingUser.value) {
-      await put(`/users/${editingUser.value.userId}`, payload);
-      toast.success("User updated successfully");
-    } else {
-      await post("/users/add", payload);
-      toast.success("User created successfully");
+    const payload = {
+      ...userForm,
+      employeeId: selectedUserEmployeeId.value ? Number(selectedUserEmployeeId.value) : null,
+      roleId: selectedUserRoleId.value ? Number(selectedUserRoleId.value) : null,
     }
-    showUserModal.value = false;
-    fetchData();
+    if (editingUser.value) {
+      await put(`/users/${editingUser.value.userId}`, payload)
+      toast.success("User updated successfully")
+    } else {
+      await post("/users/add", payload)
+      toast.success("User created successfully")
+    }
+    showUserModal.value = false
+    fetchData()
   } catch (err: any) {
-    toast.error(err.data?.message || "Failed to save user");
+    toast.error(err.data?.message || "Failed to save user")
   } finally {
-    saving.value = false;
+    saving.value = false
   }
-};
+}
 
-const deleteUser = async (id: number) => {
-  if (!confirm("Are you sure you want to delete this user?")) return;
+const confirmDeleteUser = (id: number) => {
+  userToDelete.value = id
+  showDeleteUserAlert.value = true
+}
+
+const executeDeleteUser = async () => {
+  if (!userToDelete.value) return
   try {
-    await del(`/users/${id}`);
-    toast.success("User deleted");
-    fetchData();
+    await del(`/users/${userToDelete.value}`)
+    toast.success("User deleted")
+    fetchData()
   } catch (err) {
-    toast.error("Failed to delete user");
+    toast.error("Failed to delete user")
+  } finally {
+    showDeleteUserAlert.value = false
+    userToDelete.value = null
   }
-};
+}
 
 // Role Actions
 const openRoleModal = (role: any = null) => {
@@ -1397,16 +1225,24 @@ const saveRole = async () => {
   }
 };
 
-const deleteRole = async (id: number) => {
-  if (!confirm("Are you sure you want to delete this role?")) return;
+const confirmDeleteRole = (id: number) => {
+  roleToDelete.value = id
+  showDeleteRoleAlert.value = true
+}
+
+const executeDeleteRole = async () => {
+  if (!roleToDelete.value) return
   try {
-    await del(`/roles/${id}`);
-    toast.success("Role removed");
-    fetchData();
+    await del(`/roles/${roleToDelete.value}`)
+    toast.success("Role removed")
+    fetchData()
   } catch (err) {
-    toast.error("Failed to delete role");
+    toast.error("Failed to delete role")
+  } finally {
+    showDeleteRoleAlert.value = false
+    roleToDelete.value = null
   }
-};
+}
 
 const saveSettings = async () => {
   saving.value = true;
@@ -1435,7 +1271,4 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white rounded-2xl transition-all active:scale-95 disabled:opacity-50;
-}
 </style>

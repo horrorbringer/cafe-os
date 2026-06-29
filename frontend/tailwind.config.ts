@@ -8,40 +8,74 @@ export default <Config>{
     darkMode: 'class',
     theme: {
         extend: {
-            fontFamily: {
-                sans: ['Inter', 'system-ui', 'sans-serif'],
-                mono: ['JetBrains Mono', 'monospace']
-            },
             colors: {
-                // Primary brand colors - Warm coffee tones
+                // shadcn CSS variable-based colors
+                border: 'var(--border)',
+                input: 'var(--input)',
+                ring: 'var(--ring)',
+                background: 'var(--background)',
+                foreground: 'var(--foreground)',
                 primary: {
-                    50: '#fdf8f6',
-                    100: '#f9ede8',
-                    200: '#f5dcd3',
-                    300: '#ecc4b4',
-                    400: '#e0a289',
-                    500: '#d4805e',
-                    600: '#c66a48',
-                    700: '#a5543a',
-                    800: '#884734',
-                    900: '#713d2f',
-                    950: '#3d1e16'
+                    DEFAULT: 'var(--primary)',
+                    foreground: 'var(--primary-foreground)',
+                    50: 'var(--primary-50)',
+                    100: 'var(--primary-100)',
+                    200: 'var(--primary-200)',
+                    300: 'var(--primary-300)',
+                    400: 'var(--primary-400)',
+                    500: 'var(--primary-500)',
+                    600: 'var(--primary-600)',
+                    700: 'var(--primary-700)',
+                    800: 'var(--primary-800)',
+                    900: 'var(--primary-900)',
+                    950: 'var(--primary-950)'
                 },
-                // Accent - Rich espresso
+                secondary: {
+                    DEFAULT: 'var(--secondary)',
+                    foreground: 'var(--secondary-foreground)',
+                },
+                destructive: {
+                    DEFAULT: 'var(--destructive)',
+                    foreground: 'var(--destructive-foreground)',
+                },
+                muted: {
+                    DEFAULT: 'var(--muted)',
+                    foreground: 'var(--muted-foreground)',
+                },
                 accent: {
-                    50: '#f6f5f4',
-                    100: '#e8e6e3',
-                    200: '#d3cfc9',
-                    300: '#b8b1a7',
-                    400: '#9c9284',
-                    500: '#877a6c',
-                    600: '#756658',
-                    700: '#60534a',
-                    800: '#514741',
-                    900: '#473e39',
-                    950: '#26211e'
+                    DEFAULT: 'var(--accent)',
+                    foreground: 'var(--accent-foreground)',
+                    50: 'var(--accent-50)',
+                    100: 'var(--accent-100)',
+                    200: 'var(--accent-200)',
+                    300: 'var(--accent-300)',
+                    400: 'var(--accent-400)',
+                    500: 'var(--accent-500)',
+                    600: 'var(--accent-600)',
+                    700: 'var(--accent-700)',
+                    800: 'var(--accent-800)',
+                    900: 'var(--accent-900)',
+                    950: 'var(--accent-950)'
                 },
-                // Success - Fresh mint
+                popover: {
+                    DEFAULT: 'var(--popover)',
+                    foreground: 'var(--popover-foreground)',
+                },
+                card: {
+                    DEFAULT: 'var(--card)',
+                    foreground: 'var(--card-foreground)',
+                },
+                sidebar: {
+                    DEFAULT: 'var(--sidebar)',
+                    foreground: 'var(--sidebar-foreground)',
+                    primary: 'var(--sidebar-primary)',
+                    'primary-foreground': 'var(--sidebar-primary-foreground)',
+                    accent: 'var(--sidebar-accent)',
+                    'accent-foreground': 'var(--sidebar-accent-foreground)',
+                    border: 'var(--sidebar-border)',
+                    ring: 'var(--sidebar-ring)',
+                },
+                // Hardcoded semantic palettes
                 success: {
                     50: '#ecfdf5',
                     100: '#d1fae5',
@@ -55,7 +89,6 @@ export default <Config>{
                     900: '#064e3b',
                     950: '#022c22'
                 },
-                // Warning - Warm caramel
                 warning: {
                     50: '#fffbeb',
                     100: '#fef3c7',
@@ -69,7 +102,6 @@ export default <Config>{
                     900: '#78350f',
                     950: '#451a03'
                 },
-                // Error - Berry red
                 error: {
                     50: '#fef2f2',
                     100: '#fee2e2',
@@ -83,7 +115,6 @@ export default <Config>{
                     900: '#7f1d1d',
                     950: '#450a0a'
                 },
-                // Neutral - Slate with warmth
                 neutral: {
                     50: '#fafafa',
                     100: '#f5f5f4',
@@ -97,6 +128,11 @@ export default <Config>{
                     900: '#1c1917',
                     950: '#0c0a09'
                 }
+            },
+            fontFamily: {
+                sans: ['Inter', 'system-ui', 'sans-serif'],
+                mono: ['JetBrains Mono', 'monospace'],
+                main: ['Plus Jakarta Sans', 'system-ui', '-apple-system', 'sans-serif']
             },
             boxShadow: {
                 'soft': '0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 10px 20px -2px rgba(0, 0, 0, 0.04)',

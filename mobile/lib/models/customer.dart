@@ -13,7 +13,7 @@ class Customer {
     this.phone,
     this.email,
     this.loyaltyPoints = 0,
-    this.loyaltyRedeemRate = 0.01,
+    this.loyaltyRedeemRate = 0.1,
     this.membershipLevel,
   });
 
@@ -26,7 +26,7 @@ class Customer {
       loyaltyPoints: json['loyaltyPoints'] ?? 0,
       loyaltyRedeemRate: (json['loyaltyRedeemRate'] != null)
           ? (json['loyaltyRedeemRate'] as num).toDouble()
-          : 0.01,
+          : 0.1,
       membershipLevel: json['membershipLevel'],
     );
   }

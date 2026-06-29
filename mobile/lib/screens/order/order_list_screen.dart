@@ -44,59 +44,107 @@ class _OrderListScreenState extends State<OrderListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Order History'),
-        elevation: 0,
-      ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
-          : RefreshIndicator(
-              onRefresh: _loadOrders,
-              color: AppTheme.primary,
-              backgroundColor: AppTheme.surface,
-              child: _orders == null || _orders!.isEmpty
-                  ? SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Container(
-                        height: MediaQuery.of(context).size.height * 0.7,
-                        alignment: Alignment.center,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                color: AppTheme.surface,
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(Icons.receipt_long_rounded, size: 64, color: AppTheme.primary.withValues(alpha: 0.5)),
-                            ),
-                            const SizedBox(height: 32),
-                            const Text(
-                              'No orders found',
-                              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'Your past coffee rituals will appear here.',
-                              style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
-                            ),
-                          ],
+      body: Stack(
+        children: [
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/cafe_bg.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.primary.withValues(alpha: 0.15),
+                    AppTheme.background.withValues(alpha: 0.88),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Column(
+            children: [
+              SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(8, 8, 16, 8),
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back, color: AppTheme.textPrimary),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      const Expanded(
+                        child: Text(
+                          'Order History',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 20,
+                          ),
                         ),
                       ),
-                    )
-                  : ListView.builder(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-                      itemCount: _orders!.length,
-                      itemBuilder: (context, index) {
-                        final order = _orders![index];
-                        return _OrderCard(
-                          order: order,
-                          onTap: () => widget.onOrderTap(order.orderId),
-                        );
-                      },
-                    ),
-            ),
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: _isLoading
+                    ? const Center(child: CircularProgressIndicator(color: AppTheme.primary))
+                    : RefreshIndicator(
+                        onRefresh: _loadOrders,
+                        color: AppTheme.primary,
+                        backgroundColor: AppTheme.surface,
+                        child: _orders == null || _orders!.isEmpty
+                            ? SingleChildScrollView(
+                                physics: const AlwaysScrollableScrollPhysics(),
+                                child: Container(
+                                  height: MediaQuery.of(context).size.height * 0.7,
+                                  alignment: Alignment.center,
+                                  child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(32),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.surface,
+                                          shape: BoxShape.circle,
+                                        ),
+                                        child: Icon(Icons.receipt_long_rounded, size: 64, color: AppTheme.primary.withValues(alpha: 0.5)),
+                                      ),
+                                      const SizedBox(height: 32),
+                                      const Text(
+                                        'No orders found',
+                                        style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'Your past coffee rituals will appear here.',
+                                        style: TextStyle(color: AppTheme.textSecondary, fontSize: 14),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                            : ListView.builder(
+                                padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                                itemCount: _orders!.length,
+                                itemBuilder: (context, index) {
+                                  final order = _orders![index];
+                                  return _OrderCard(
+                                    order: order,
+                                    onTap: () => widget.onOrderTap(order.orderId),
+                                  );
+                                },
+                              ),
+                      ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

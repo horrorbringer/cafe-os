@@ -60,7 +60,16 @@ class _SearchScreenState extends State<SearchScreen> {
           ),
           Positioned.fill(
             child: Container(
-              color: AppTheme.background.withValues(alpha: 0.94),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppTheme.primary.withValues(alpha: 0.15),
+                    AppTheme.background.withValues(alpha: 0.88),
+                  ],
+                ),
+              ),
             ),
           ),
           Column(

@@ -6,6 +6,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,9 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.cache.annotation.CacheEvict;
 
 import com.example.backend.dto.common.ApiResponse;
+import com.example.backend.dto.loyalty.LoyaltyBackfillRequest;
+import com.example.backend.dto.loyalty.LoyaltyBackfillResultDTO;
 import com.example.backend.dto.report.DashboardStatsDTO;
+import com.example.backend.dto.report.LoyaltyReportDTO;
 import com.example.backend.dto.report.SalesReportDTO;
 import com.example.backend.dto.report.StockTransferResponseDTO;
+import com.example.backend.services.LoyaltyBackfillService;
 import com.example.backend.services.ReportService;
 import com.example.backend.seeder.DataSeeder;
 import java.util.List;
@@ -25,10 +30,13 @@ import java.util.List;
 public class ReportController {
 
     private final ReportService reportService;
+    private final LoyaltyBackfillService loyaltyBackfillService;
     private final DataSeeder dataSeeder;
 
-    public ReportController(ReportService reportService, DataSeeder dataSeeder) {
+    public ReportController(ReportService reportService, LoyaltyBackfillService loyaltyBackfillService,
+            DataSeeder dataSeeder) {
         this.reportService = reportService;
+        this.loyaltyBackfillService = loyaltyBackfillService;
         this.dataSeeder = dataSeeder;
     }
 
@@ -36,6 +44,21 @@ public class ReportController {
     public ResponseEntity<ApiResponse<DashboardStatsDTO>> getDashboardStats() {
         DashboardStatsDTO stats = reportService.getDashboardStats();
         return ResponseEntity.ok(ApiResponse.success(stats, "Dashboard stats retrieved successfully"));
+    }
+
+    @GetMapping("/loyalty")
+    public ResponseEntity<ApiResponse<LoyaltyReportDTO>> getLoyaltyReport() {
+        LoyaltyReportDTO report = reportService.getLoyaltyReport();
+        return ResponseEntity.ok(ApiResponse.success(report, "Loyalty report generated successfully"));
+    }
+
+    @PostMapping("/loyalty/backfill")
+    public ResponseEntity<ApiResponse<LoyaltyBackfillResultDTO>> backfillLoyaltyLedger(
+            @RequestBody(required = false) LoyaltyBackfillRequest request) {
+        boolean apply = request != null && Boolean.TRUE.equals(request.getApply());
+        LoyaltyBackfillResultDTO result = loyaltyBackfillService.backfill(apply);
+        return ResponseEntity.ok(ApiResponse.success(result,
+                apply ? "Loyalty ledger backfill completed" : "Loyalty ledger backfill preview generated"));
     }
 
     @GetMapping("/sales")

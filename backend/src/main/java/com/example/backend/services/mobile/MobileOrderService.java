@@ -4,12 +4,14 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.backend.dto.mobile.MobileOrderDTO;
+import com.example.backend.exception.InsufficientStockException;
 import com.example.backend.model.AddOnEntity;
 import com.example.backend.model.BranchEntity;
 import com.example.backend.model.CustomerEntity;
@@ -22,7 +24,9 @@ import com.example.backend.repository.BranchRepository;
 import com.example.backend.repository.CustomerRepository;
 import com.example.backend.repository.MenuItemRepository;
 import com.example.backend.repository.OrderRepository;
+import com.example.backend.repository.RecipeRepository;
 import com.example.backend.repository.VariantRepository;
+import com.example.backend.services.BranchStockService;
 import com.example.backend.services.FcmService;
 import com.example.backend.services.SystemSettingService;
 import com.example.backend.services.LoyaltyService;
@@ -36,6 +40,8 @@ public class MobileOrderService {
     private final MenuItemRepository menuItemRepository;
     private final VariantRepository variantRepository;
     private final AddOnRepository addOnRepository;
+    private final RecipeRepository recipeRepository;
+    private final BranchStockService branchStockService;
     private final SystemSettingService systemSettingService;
     private final FcmService fcmService;
     private final LoyaltyService loyaltyService;
@@ -46,6 +52,8 @@ public class MobileOrderService {
             MenuItemRepository menuItemRepository,
             VariantRepository variantRepository,
             AddOnRepository addOnRepository,
+            RecipeRepository recipeRepository,
+            BranchStockService branchStockService,
             SystemSettingService systemSettingService,
             FcmService fcmService,
             LoyaltyService loyaltyService) {
@@ -55,6 +63,8 @@ public class MobileOrderService {
         this.menuItemRepository = menuItemRepository;
         this.variantRepository = variantRepository;
         this.addOnRepository = addOnRepository;
+        this.recipeRepository = recipeRepository;
+        this.branchStockService = branchStockService;
         this.systemSettingService = systemSettingService;
         this.fcmService = fcmService;
         this.loyaltyService = loyaltyService;
@@ -103,7 +113,7 @@ public class MobileOrderService {
         order.setStatus(OrderEntity.OrderStatus.PENDING);
         order.setNote(request.getNote());
         order.setOrderSource("MOBILE");
-        order.setPointsRedeemed(request.getPointsRedeemed() != null ? request.getPointsRedeemed() : 0);
+        order.setPointsRedeemed(0);
 
         // Set delivery fields
         if (orderType == OrderEntity.OrderType.DELIVERY) {
@@ -156,6 +166,8 @@ public class MobileOrderService {
             subTotal += (unitPrice + addOnTotal) * itemReq.getQty();
         }
 
+        validateStockForOrder(branch.getBranchId(), request.getItems());
+
         order.setItems(orderItems);
         order.setSubTotal(subTotal);
         order.setDiscountAmount(0.0);
@@ -182,13 +194,43 @@ public class MobileOrderService {
             order.setTotalAmount(Math.max(0.0, order.getTotalAmount() - discount));
             order.setPointsRedeemed(actualPointsToRedeem);
 
-            // Deduct points
-            loyaltyService.deductPoints(customer, actualPointsToRedeem);
         }
 
         OrderEntity saved = orderRepository.save(order);
 
+        if (order.getPointsRedeemed() != null && order.getPointsRedeemed() > 0) {
+            loyaltyService.deductPoints(customer, saved, order.getPointsRedeemed());
+        }
+
         return toOrderResponse(saved);
+    }
+
+    private void validateStockForOrder(Long branchId, List<MobileOrderDTO.OrderItemRequest> items) {
+        Map<Long, Double> totalIngredientsNeeded = new java.util.HashMap<>();
+        Map<Long, com.example.backend.model.IngredientEntity> ingredientsById = new java.util.HashMap<>();
+
+        for (MobileOrderDTO.OrderItemRequest item : items) {
+            List<com.example.backend.model.RecipeEntity> recipes = recipeRepository
+                    .findByMenuItemMenuItemId(item.getMenuItemId());
+            for (com.example.backend.model.RecipeEntity recipe : recipes) {
+                Long ingredientId = recipe.getIngredient().getIngredientId();
+                Double needed = recipe.getQuantityNeeded() * item.getQty();
+                totalIngredientsNeeded.merge(ingredientId, needed, Double::sum);
+                ingredientsById.put(ingredientId, recipe.getIngredient());
+            }
+        }
+
+        for (Map.Entry<Long, Double> entry : totalIngredientsNeeded.entrySet()) {
+            Long ingredientId = entry.getKey();
+            Double totalNeeded = entry.getValue();
+            if (!branchStockService.isStockAvailable(branchId, ingredientId, totalNeeded)) {
+                com.example.backend.model.IngredientEntity ingredient = ingredientsById.get(ingredientId);
+                Double currentStock = branchStockService.getCurrentStock(branchId, ingredientId);
+                throw new InsufficientStockException(
+                        String.format("Insufficient stock for %s at this branch. Needed: %.2f %s, Available: %.2f %s",
+                                ingredient.getName(), totalNeeded, ingredient.getUnit(), currentStock, ingredient.getUnit()));
+            }
+        }
     }
 
     /**
@@ -236,7 +278,7 @@ public class MobileOrderService {
 
         // Refund loyalty points if any were used
         if (order.getPointsRedeemed() != null && order.getPointsRedeemed() > 0) {
-            loyaltyService.refundPoints(order.getCustomer(), order.getPointsRedeemed());
+            loyaltyService.refundPoints(order.getCustomer(), order, order.getPointsRedeemed());
         }
 
         OrderEntity saved = orderRepository.save(order);
@@ -297,6 +339,7 @@ public class MobileOrderService {
                 .deliveryAddress(order.getDeliveryAddress())
                 .deliveryPhone(order.getDeliveryPhone())
                 .pointsRedeemed(order.getPointsRedeemed())
+                .pointsEarned(order.getPointsEarned())
                 .branchName(order.getBranch() != null ? order.getBranch().getName() : null)
                 .items(items)
                 .createdAt(order.getCreatedAt() != null

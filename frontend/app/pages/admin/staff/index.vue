@@ -1,7 +1,13 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb :items="[{ label: 'Staff' }]" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Staff</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div
@@ -17,117 +23,77 @@
         </div>
 
         <div class="flex items-center gap-3">
-          <button
-            v-if="activeTab === 'employees'"
-            @click="openEmployeeModal"
-            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
+          <Button v-if="activeTab === 'employees'" @click="openEmployeeModal">
+            <PlusIcon class="w-4 h-4" />
             Add Employee
-          </button>
-          <button
-            v-if="activeTab === 'shifts'"
-            @click="openShiftModal"
-            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all shadow-lg shadow-primary-500/20 flex items-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
+          </Button>
+          <Button v-if="activeTab === 'shifts'" @click="openShiftModal">
+            <PlusIcon class="w-4 h-4" />
             New Shift
-          </button>
+          </Button>
         </div>
       </div>
 
       <!-- Tabs Navigation -->
-      <div
-        class="flex items-center gap-1 p-1 bg-neutral-100 dark:bg-neutral-800/50 rounded-2xl w-fit"
-      >
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          @click="activeTab = tab.id"
-          :class="[
-            'px-6 py-2 rounded-xl text-sm font-bold transition-all',
-            activeTab === tab.id
-              ? 'bg-white dark:bg-neutral-800 text-primary-600 dark:text-primary-400 shadow-sm'
-              : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300',
-          ]"
-        >
-          {{ tab.name }}
-        </button>
-      </div>
+      <Tabs v-model="activeTab">
+        <TabsList class="bg-neutral-100 dark:bg-neutral-800/50 rounded-2xl">
+          <TabsTrigger v-for="tab in tabs" :key="tab.id" :value="tab.id" class="rounded-xl text-sm font-bold px-6 py-2">
+            {{ tab.name }}
+          </TabsTrigger>
+        </TabsList>
 
-      <!-- -- TAB CONTENT: OVERVIEW -- -->
-      <div v-if="activeTab === 'overview'" class="space-y-6">
+      <TabsContent value="overview" class="space-y-6">
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div
-            class="card p-6 bg-gradient-to-br from-primary-500/10 to-transparent border-primary-100 dark:border-primary-900/20"
-          >
-            <p
-              class="text-xs font-black text-primary-600 uppercase tracking-widest mb-1"
-            >
-              Total Team
-            </p>
-            <h3 class="text-3xl font-black text-neutral-900 dark:text-white">
-              {{ employees.length }}
-            </h3>
-            <p class="text-[10px] text-neutral-500 mt-1">
-              Active staff members
-            </p>
-          </div>
-          <div
-            class="card p-6 bg-gradient-to-br from-success-500/10 to-transparent border-success-100 dark:border-success-900/20"
-          >
-            <p
-              class="text-xs font-black text-success-600 uppercase tracking-widest mb-1"
-            >
-              On Duty Now
-            </p>
-            <h3 class="text-3xl font-black text-neutral-900 dark:text-white">
-              {{ activeAttendance.length }}
-            </h3>
-            <p class="text-[10px] text-neutral-500 mt-1">
-              Currently clocked in
-            </p>
-          </div>
-          <div
-            class="card p-6 bg-gradient-to-br from-warning-500/10 to-transparent border-warning-100 dark:border-warning-900/20"
-          >
-            <p
-              class="text-xs font-black text-warning-600 uppercase tracking-widest mb-1"
-            >
-              Late Today
-            </p>
-            <h3 class="text-3xl font-black text-neutral-900 dark:text-white">
-              {{ lateTodayCount }}
-            </h3>
-            <p class="text-[10px] text-neutral-500 mt-1">
-              Arrivals after shift start
-            </p>
-          </div>
+          <Card class="bg-gradient-to-br from-primary-500/10 to-transparent border-primary-100 dark:border-primary-900/20">
+            <CardContent class="p-6">
+              <p
+                class="text-xs font-black text-primary-600 uppercase tracking-widest mb-1"
+              >
+                Total Team
+              </p>
+              <h3 class="text-3xl font-black text-neutral-900 dark:text-white">
+                {{ employees.length }}
+              </h3>
+              <p class="text-[10px] text-neutral-500 mt-1">
+                Active staff members
+              </p>
+            </CardContent>
+          </Card>
+          <Card class="bg-gradient-to-br from-success-500/10 to-transparent border-success-100 dark:border-success-900/20">
+            <CardContent class="p-6">
+              <p
+                class="text-xs font-black text-success-600 uppercase tracking-widest mb-1"
+              >
+                On Duty Now
+              </p>
+              <h3 class="text-3xl font-black text-neutral-900 dark:text-white">
+                {{ activeAttendance.length }}
+              </h3>
+              <p class="text-[10px] text-neutral-500 mt-1">
+                Currently clocked in
+              </p>
+            </CardContent>
+          </Card>
+          <Card class="bg-gradient-to-br from-warning-500/10 to-transparent border-warning-100 dark:border-warning-900/20">
+            <CardContent class="p-6">
+              <p
+                class="text-xs font-black text-warning-600 uppercase tracking-widest mb-1"
+              >
+                Late Today
+              </p>
+              <h3 class="text-3xl font-black text-neutral-900 dark:text-white">
+                {{ lateTodayCount }}
+              </h3>
+              <p class="text-[10px] text-neutral-500 mt-1">
+                Arrivals after shift start
+              </p>
+            </CardContent>
+          </Card>
         </div>
 
         <!-- Currently Working List -->
-        <div class="card overflow-hidden">
+        <Card class="overflow-hidden">
           <div
             class="p-4 border-b border-neutral-200 dark:border-neutral-700 bg-neutral-50/50 dark:bg-neutral-800/50"
           >
@@ -135,132 +101,97 @@
               Currently On Duty
             </h3>
           </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr
-                  class="text-left text-neutral-500 border-b border-neutral-200 dark:border-neutral-700"
-                >
-                  <th class="px-6 py-3 font-medium">Employee</th>
-                  <th class="px-6 py-3 font-medium">Clocked In At</th>
-                  <th class="px-6 py-3 font-medium">Duration</th>
-                  <th class="px-6 py-3 font-medium">Status</th>
-                </tr>
-              </thead>
-              <tbody
-                class="divide-y divide-neutral-200 dark:divide-neutral-700"
-              >
-                <tr
-                  v-for="att in activeAttendance"
-                  :key="att.attendanceId"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30"
-                >
-                  <td
-                    class="px-6 py-4 font-bold text-neutral-900 dark:text-white"
+          <CardContent class="p-0">
+            <div class="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Clocked In At</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
+                    v-for="att in activeAttendance"
+                    :key="att.attendanceId"
                   >
-                    {{ att.employee?.fullName }}
-                  </td>
-                  <td class="px-6 py-4 text-neutral-500">
-                    {{ formatTime(att.checkIn) }}
-                  </td>
-                  <td
-                    class="px-6 py-4 font-mono text-neutral-600 dark:text-neutral-400"
-                  >
-                    {{ calculateDuration(att.checkIn) }}
-                  </td>
-                  <td class="px-6 py-4">
-                    <span
-                      :class="
-                        att.status === 'LATE'
-                          ? 'bg-warning-100 text-warning-700'
-                          : 'bg-success-100 text-success-700'
-                      "
-                      class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase"
-                    >
-                      {{ att.status }}
-                    </span>
-                  </td>
-                </tr>
-                <tr v-if="activeAttendance.length === 0">
-                  <td
-                    colspan="4"
-                    class="px-6 py-12 text-center text-neutral-400 bg-neutral-50/30 dark:bg-neutral-900/30"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-12 h-12 mx-auto mb-2 opacity-10"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
-                      <path d="M12 8v4l3 3" />
-                      <circle cx="12" cy="12" r="10" />
-                    </svg>
-                    No staff currently clocked in.
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
+                    <TableCell class="font-bold text-neutral-900 dark:text-white">
+                      {{ att.employee?.fullName }}
+                    </TableCell>
+                    <TableCell class="text-neutral-500">
+                      {{ formatTime(att.checkIn) }}
+                    </TableCell>
+                    <TableCell class="font-mono text-neutral-600 dark:text-neutral-400">
+                      {{ calculateDuration(att.checkIn) }}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        :class="
+                          att.status === 'LATE'
+                            ? 'bg-warning-100 text-warning-700'
+                            : 'bg-success-100 text-success-700'
+                        "
+                        class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase"
+                      >
+                        {{ att.status }}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow v-if="activeAttendance.length === 0">
+                    <TableCell colspan="4" class="text-center text-neutral-400 bg-neutral-50/30 dark:bg-neutral-900/30">
+                      <ClockIcon class="w-12 h-12 mx-auto mb-2 opacity-10" />
+                      No staff currently clocked in.
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
 
-      <!-- -- TAB CONTENT: EMPLOYEES -- -->
-      <div v-if="activeTab === 'employees'" class="space-y-4">
-        <div class="card overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr
-                  class="bg-neutral-50 dark:bg-neutral-800/50 text-left text-neutral-500 border-b border-neutral-200 dark:border-neutral-700"
-                >
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+      <TabsContent value="employees" class="space-y-4">
+        <Card class="overflow-hidden">
+          <CardContent class="p-0">
+            <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
                     Staff Member
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Position/Branch
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Security Role
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Salary Settings
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px] text-right"
-                  >
+                  </TableHead>
+                  <TableHead class="text-right">
                     Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                class="divide-y divide-neutral-200 dark:divide-neutral-700"
-              >
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 <template v-if="loadingEmployees">
-                  <tr v-for="i in 5" :key="i" class="animate-pulse">
-                    <td v-for="j in 5" :key="j" class="px-6 py-4">
+                  <TableRow v-for="i in 5" :key="i" class="animate-pulse">
+                    <TableCell v-for="j in 5" :key="j">
                       <div
                         class="h-4 bg-neutral-100 dark:bg-neutral-800 rounded"
                       ></div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 </template>
                 <template v-else>
-                  <tr
+                  <TableRow
                     v-for="emp in employees"
                     :key="emp.employeeId"
-                    class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30"
                   >
-                    <td class="px-6 py-4">
+                    <TableCell>
                       <div class="flex items-center gap-3">
                         <div
                           class="w-10 h-10 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center font-black text-primary-600"
@@ -285,8 +216,8 @@
                           </span>
                         </div>
                       </div>
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <p
                         class="font-bold text-neutral-700 dark:text-neutral-300"
                       >
@@ -295,8 +226,8 @@
                       <p class="text-xs text-neutral-500">
                         {{ emp.branch?.name || "Global" }}
                       </p>
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <div
                         v-if="emp.roleName"
                         class="flex items-center gap-1.5"
@@ -312,8 +243,8 @@
                       <span v-else class="text-[10px] text-neutral-400 italic"
                         >No account assigned</span
                       >
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <div class="flex flex-col gap-1">
                         <span
                           class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest"
@@ -330,36 +261,22 @@
                           ></span
                         >
                       </div>
-                    </td>
-                    <td class="px-6 py-4 text-right">
-                      <button
-                        @click="editEmployee(emp)"
-                        class="p-2 text-neutral-400 hover:text-primary-600 rounded-xl hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-all"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-5 h-5"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                        >
-                          <path
-                            d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-                          />
-                        </svg>
-                      </button>
-                    </td>
-                  </tr>
+                    </TableCell>
+                    <TableCell class="text-right">
+                      <Button variant="ghost" size="icon" @click="editEmployee(emp)">
+                        <PencilIcon class="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
                 </template>
-              </tbody>
-            </table>
+              </TableBody>
+            </Table>
           </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
 
-      <!-- -- TAB CONTENT: PAYROLL -- -->
-      <div v-if="activeTab === 'payroll'" class="space-y-6">
+      <TabsContent value="payroll" class="space-y-6">
         <!-- Date Filter -->
         <div
           class="flex items-end gap-4 p-6 bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 shadow-sm"
@@ -369,30 +286,31 @@
               class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
               >Start Date</label
             >
-            <input
+            <Input
               type="date"
               v-model="payrollDates.start"
-              class="input w-full"
+              class="w-full"
             />
-          </div>
-          <div class="flex-1 max-w-xs">
+           </div>
+           <div class="flex-1 max-w-xs">
             <label
               class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
               >End Date</label
             >
-            <input
+            <Input
               type="date"
               v-model="payrollDates.end"
-              class="input w-full"
+              class="w-full"
             />
           </div>
-          <button
+          <Button
             @click="fetchPayroll"
-            class="btn-primary py-2.5 px-6"
+            variant="default"
+            class="py-2.5 px-6"
             :disabled="loadingPayroll"
           >
             {{ loadingPayroll ? "Calculating..." : "Generate Payroll" }}
-          </button>
+          </Button>
         </div>
 
         <!-- Payroll Summary Cards -->
@@ -400,72 +318,62 @@
           v-if="payrollData.length > 0"
           class="grid grid-cols-1 md:grid-cols-4 gap-6"
         >
-          <div class="card p-6 border-l-4 border-l-primary-500">
-            <p
-              class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1"
-            >
-              Total Payout
-            </p>
-            <h3 class="text-2xl font-black text-neutral-900 dark:text-white">
-              ${{ totalPayrollPayout.toFixed(2) }}
-            </h3>
-          </div>
-          <div class="card p-6 border-l-4 border-l-accent-500">
-            <p
-              class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1"
-            >
-              Total Hours
-            </p>
-            <h3 class="text-2xl font-black text-neutral-900 dark:text-white">
-              {{ totalPayrollHours.toFixed(1) }}h
-            </h3>
-          </div>
+          <Card class="border-l-4 border-l-primary-500">
+            <CardContent class="p-6">
+              <p
+                class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1"
+              >
+                Total Payout
+              </p>
+              <h3 class="text-2xl font-black text-neutral-900 dark:text-white">
+                ${{ totalPayrollPayout.toFixed(2) }}
+              </h3>
+            </CardContent>
+          </Card>
+          <Card class="border-l-4 border-l-accent-500">
+            <CardContent class="p-6">
+              <p
+                class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-1"
+              >
+                Total Hours
+              </p>
+              <h3 class="text-2xl font-black text-neutral-900 dark:text-white">
+                {{ totalPayrollHours.toFixed(1) }}h
+              </h3>
+            </CardContent>
+          </Card>
         </div>
 
         <!-- Payroll Table -->
-        <div class="card overflow-hidden">
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr
-                  class="bg-neutral-50 dark:bg-neutral-800/50 text-left text-neutral-500 border-b border-neutral-200 dark:border-neutral-700"
-                >
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+        <Card class="overflow-hidden">
+          <CardContent class="p-0">
+            <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>
                     Employee
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Worked
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Attendance
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px]"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Earnings Breakdown
-                  </th>
-                  <th
-                    class="px-6 py-4 font-bold uppercase tracking-wider text-[10px] text-right"
-                  >
+                  </TableHead>
+                  <TableHead class="text-right">
                     Net Pay
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                class="divide-y divide-neutral-200 dark:divide-neutral-700"
-              >
-                <tr
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
                   v-for="p in payrollData"
                   :key="p.employeeId"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30"
                 >
-                  <td class="px-6 py-4">
+                  <TableCell>
                     <p class="font-black text-neutral-900 dark:text-white">
                       {{ p.fullName }}
                     </p>
@@ -474,14 +382,14 @@
                     >
                       {{ p.position }}
                     </p>
-                  </td>
-                  <td class="px-6 py-4 text-xs">
+                  </TableCell>
+                  <TableCell class="text-xs">
                     <p class="font-bold">{{ p.daysWorked }} Days</p>
                     <p class="text-neutral-500">
                       {{ p.totalHoursWorked.toFixed(1) }} Hours
                     </p>
-                  </td>
-                  <td class="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <div
                       v-if="p.lateOccurrences > 0"
                       class="flex items-center gap-1.5 text-error-600 font-bold text-[10px] uppercase"
@@ -505,8 +413,8 @@
                     >
                       Perfect Schedule
                     </div>
-                  </td>
-                  <td class="px-6 py-4 text-[10px] font-bold text-neutral-500">
+                  </TableCell>
+                  <TableCell class="text-[10px] font-bold text-neutral-500">
                     <div class="flex justify-between max-w-[150px]">
                       <span>Base Salary:</span>
                       <span class="text-neutral-900 dark:text-white"
@@ -521,36 +429,30 @@
                         >${{ p.hourlyEarnings.toFixed(2) }}</span
                       >
                     </div>
-                  </td>
-                  <td class="px-6 py-4 text-right">
+                  </TableCell>
+                  <TableCell class="text-right">
                     <span class="text-lg font-black text-primary-600"
                       >${{ p.totalEarnings.toFixed(2) }}</span
                     >
-                  </td>
-                </tr>
-                <tr v-if="payrollData.length === 0">
-                  <td
+                  </TableCell>
+                </TableRow>
+                <TableRow v-if="payrollData.length === 0">
+                  <TableCell
                     colspan="5"
-                    class="px-6 py-12 text-center text-neutral-400 italic"
+                    class="text-center text-neutral-400 italic"
                   >
                     No payroll data generated yet. Choose dates and click
                     "Generate".
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
-        </div>
-      </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
 
-      <!-- -- MODALS (Remaining tabs like shifts/attendance use previous simple designs but wrapped in NuxtLayout) -- -->
-      <div
-        v-if="activeTab === 'shifts' || activeTab === 'attendance'"
-        class="space-y-4"
-      >
-        <!-- Reuse your existing tables for Shifts and Attendance but styled slightly more premium -->
-        <!-- (Omitting full implementation here to save space, but keeping placeholders) -->
-        <div v-if="activeTab === 'shifts'" class="space-y-6">
+      <TabsContent value="shifts" class="space-y-6">
 
           <!-- Today's Schedule Summary -->
           <div v-if="todayShifts.length > 0" class="relative overflow-hidden rounded-3xl">
@@ -608,91 +510,91 @@
                 </div>
               </div>
               <div class="flex items-center gap-2">
-                <button @click="weekOffset--" class="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-neutral-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m15 18-6-6 6-6"/></svg>
-                </button>
-                <button @click="weekOffset = 0" class="px-3 py-1 rounded-lg text-xs font-bold" :class="weekOffset === 0 ? 'bg-primary-100 text-primary-600 dark:bg-primary-900/30' : 'text-neutral-500 hover:bg-neutral-100 dark:hover:bg-neutral-800'">Today</button>
-                <button @click="weekOffset++" class="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-neutral-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m9 18 6-6-6-6"/></svg>
-                </button>
+                <Button variant="ghost" size="icon" @click="weekOffset--">
+                  <ChevronLeftIcon class="w-4 h-4" />
+                </Button>
+                <Button :variant="weekOffset === 0 ? 'default' : 'ghost'" size="sm" @click="weekOffset = 0">Today</Button>
+                <Button variant="ghost" size="icon" @click="weekOffset++">
+                  <ChevronRightIcon class="w-4 h-4" />
+                </Button>
                 <div class="w-px h-6 bg-neutral-200 dark:bg-neutral-700 mx-1"></div>
-                <button @click="printSchedule" class="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors text-neutral-500" title="Print Schedule">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                </button>
+                <Button variant="ghost" size="icon" @click="printSchedule" title="Print Schedule">
+                  <PrinterIcon class="w-4 h-4" />
+                </Button>
               </div>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-neutral-200 dark:border-neutral-700">
-                    <th class="px-4 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest min-w-[160px] sticky left-0 bg-white dark:bg-neutral-900 z-10">Employee</th>
-                    <th class="px-2 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest min-w-[80px]">Position</th>
-                    <th v-for="day in weekDays" :key="day.key" class="px-2 py-3 text-center text-[10px] font-black uppercase tracking-widest min-w-[70px]" :class="day.isToday ? 'text-primary-600 bg-primary-50/50 dark:bg-primary-900/10' : 'text-neutral-400'">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead class="sticky left-0 bg-white dark:bg-neutral-900 z-10">Employee</TableHead>
+                    <TableHead>Position</TableHead>
+                    <TableHead v-for="day in weekDays" :key="day.key" class="text-center" :class="day.isToday ? 'text-primary-600 bg-primary-50/50 dark:bg-primary-900/10' : ''">
                       <div>{{ day.label }}</div>
                       <div class="text-[9px] font-medium" :class="day.isToday ? 'text-primary-500' : 'text-neutral-300 dark:text-neutral-600'">{{ day.date }}</div>
-                    </th>
-                    <th class="px-2 py-3 text-center text-[10px] font-black text-neutral-400 uppercase tracking-widest min-w-[55px]">Hrs</th>
-                    <th class="px-2 py-3 text-right text-[10px] font-black text-neutral-400 uppercase tracking-widest min-w-[70px]">Cost</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                  <tr v-for="row in weekScheduleGrid" :key="row.employeeId" class="hover:bg-neutral-50/50 dark:hover:bg-neutral-800/20 transition-colors">
-                    <td class="px-4 py-3 sticky left-0 bg-white dark:bg-neutral-900 z-10">
+                    </TableHead>
+                    <TableHead class="text-center">Hrs</TableHead>
+                    <TableHead class="text-right">Cost</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow v-for="row in weekScheduleGrid" :key="row.employeeId">
+                    <TableCell class="sticky left-0 bg-white dark:bg-neutral-900 z-10">
                       <div class="flex items-center gap-2">
                         <div class="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-500 to-accent-500 flex items-center justify-center text-white text-[10px] font-black">
                           {{ getInitials(row.name) }}
                         </div>
                         <span class="font-bold text-neutral-900 dark:text-white text-xs truncate max-w-[100px]">{{ row.name }}</span>
                       </div>
-                    </td>
-                    <td class="px-2 py-3">
+                    </TableCell>
+                    <TableCell>
                       <span class="text-[10px] text-neutral-500 font-medium">{{ row.position }}</span>
-                    </td>
-                    <td v-for="day in weekDays" :key="day.key" class="px-1 py-2 text-center" :class="day.isToday ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''">
+                    </TableCell>
+                    <TableCell v-for="day in weekDays" :key="day.key" class="text-center" :class="day.isToday ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''">
                       <template v-if="row.days[day.key] && row.days[day.key].length">
                         <div class="flex flex-col items-center gap-0.5">
                           <span v-for="sn in row.days[day.key]" :key="sn" :class="getShiftCellClass(sn)" class="inline-flex items-center justify-center w-8 h-6 rounded text-[10px] font-black cursor-default" :title="sn === 1 ? 'Morning' : sn === 2 ? 'Afternoon' : 'Night'">
                             {{ sn }}
                           </span>
-                          <button @click="quickAssignShift(row.employeeId, day.key)" class="inline-flex items-center justify-center w-8 h-5 rounded text-[10px] font-bold text-neutral-400 hover:text-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors cursor-pointer border border-dashed border-neutral-200 dark:border-neutral-700" title="Add another shift">+</button>
+                          <Button variant="outline" size="xs" @click="quickAssignShift(row.employeeId, day.key)" title="Add another shift" class="w-8 h-5 p-0 text-[10px] border-dashed">+</Button>
                         </div>
                       </template>
                       <template v-else>
-                        <button @click="quickAssignShift(row.employeeId, day.key)" class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-[10px] font-bold text-success-500 bg-success-50 dark:bg-success-900/10 hover:bg-primary-100 hover:text-primary-600 dark:hover:bg-primary-900/20 transition-colors cursor-pointer" title="Click to assign shift">Off</button>
+                        <Button variant="outline" size="xs" @click="quickAssignShift(row.employeeId, day.key)" title="Click to assign shift" class="w-8 h-8 p-0 text-[10px] text-success-500 border-success-200 bg-success-50 dark:bg-success-900/10 dark:border-success-900/30 hover:bg-primary-100 hover:text-primary-600">Off</Button>
                       </template>
-                    </td>
-                    <td class="px-2 py-3 text-center">
+                    </TableCell>
+                    <TableCell class="text-center">
                       <span class="font-mono text-xs font-bold text-neutral-600 dark:text-neutral-400">{{ getEmployeeWeekHours(row) }}h</span>
-                    </td>
-                    <td class="px-2 py-3 text-right">
+                    </TableCell>
+                    <TableCell class="text-right">
                       <span class="font-mono text-xs font-bold text-success-600">${{ getEmployeeWeekCost(row).toFixed(0) }}</span>
-                    </td>
-                  </tr>
-                </tbody>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
                 <!-- Totals Footer -->
-                <tfoot class="border-t-2 border-neutral-200 dark:border-neutral-700">
-                  <tr v-for="shiftType in [1, 2, 3]" :key="shiftType" class="bg-neutral-50/50 dark:bg-neutral-800/20">
-                    <td class="px-4 py-2 sticky left-0 bg-neutral-50 dark:bg-neutral-800/50 z-10" :colspan="2">
+                <TableFooter>
+                  <TableRow v-for="shiftType in [1, 2, 3]" :key="shiftType" class="bg-neutral-50/50 dark:bg-neutral-800/20">
+                    <TableCell class="sticky left-0 bg-neutral-50 dark:bg-neutral-800/50 z-10" :colspan="2">
                       <span class="text-[10px] font-black text-neutral-500 uppercase tracking-widest">
                         {{ shiftType === 1 ? '☀️ Morning' : shiftType === 2 ? '🌤 Afternoon' : '🌙 Night' }}
                       </span>
-                    </td>
-                    <td v-for="day in weekDays" :key="day.key" class="px-1 py-2 text-center" :class="day.isToday ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''">
+                    </TableCell>
+                    <TableCell v-for="day in weekDays" :key="day.key" class="text-center" :class="day.isToday ? 'bg-primary-50/30 dark:bg-primary-900/5' : ''">
                       <span class="text-xs font-black text-neutral-600 dark:text-neutral-400">{{ getWeekShiftCount(day.key, shiftType) }}</span>
-                    </td>
-                    <td colspan="2"></td>
-                  </tr>
+                    </TableCell>
+                    <TableCell colspan="2"></TableCell>
+                  </TableRow>
                   <!-- Total Labor Cost Row -->
-                  <tr class="bg-primary-50/50 dark:bg-primary-900/10 border-t border-primary-200 dark:border-primary-800">
-                    <td class="px-4 py-3 sticky left-0 bg-primary-50 dark:bg-primary-900/20 z-10" colspan="2">
+                  <TableRow class="bg-primary-50/50 dark:bg-primary-900/10 border-t border-primary-200 dark:border-primary-800">
+                    <TableCell class="sticky left-0 bg-primary-50 dark:bg-primary-900/20 z-10" colspan="2">
                       <span class="text-[10px] font-black text-primary-700 dark:text-primary-400 uppercase tracking-widest">💰 Est. Weekly Labor Cost</span>
-                    </td>
-                    <td :colspan="weekDays.length" class="px-2 py-3 text-right">
+                    </TableCell>
+                    <TableCell :colspan="weekDays.length" class="text-right">
                       <span class="text-lg font-black text-primary-700 dark:text-primary-400">${{ totalWeekLaborCost.toFixed(2) }}</span>
-                    </td>
-                  </tr>
-                </tfoot>
-              </table>
+                    </TableCell>
+                  </TableRow>
+                </TableFooter>
+              </Table>
               <div v-if="weekScheduleGrid.length === 0" class="py-12 text-center text-neutral-400 text-sm italic">
                 No employees with shifts this week
               </div>
@@ -704,9 +606,9 @@
               <span class="flex items-center gap-1.5"><span class="w-4 h-4 rounded bg-success-50 text-success-500 inline-flex items-center justify-center text-[9px] font-bold">Off</span> Day Off</span>
             </div>
           </div>
-        </div>
+      </TabsContent>
 
-        <div v-if="activeTab === 'attendance'" class="space-y-6">
+      <TabsContent value="attendance" class="space-y-6">
           <div class="bg-white dark:bg-neutral-900 rounded-3xl border border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
             <div class="p-5 bg-neutral-50/50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center">
               <div class="flex items-center gap-3">
@@ -720,41 +622,40 @@
               </div>
             </div>
             <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="border-b border-neutral-200 dark:border-neutral-700">
-                    <th class="px-6 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest">Employee</th>
-                    <th class="px-6 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest">Date</th>
-                    <th class="px-6 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest">Clock In</th>
-                    <th class="px-6 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest">Clock Out</th>
-                    <th class="px-6 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest">Duration</th>
-                    <th class="px-6 py-3 text-left text-[10px] font-black text-neutral-400 uppercase tracking-widest">Status</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-                  <tr
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Clock In</TableHead>
+                    <TableHead>Clock Out</TableHead>
+                    <TableHead>Duration</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
                     v-for="att in attendance"
                     :key="att.attendanceId"
-                    class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
                   >
-                    <td class="px-6 py-4">
+                    <TableCell>
                       <div class="flex items-center gap-3">
                         <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-success-500 to-primary-500 flex items-center justify-center text-white text-xs font-black shadow-md shadow-success-500/20">
                           {{ getInitials(att.employee?.fullName || '?') }}
                         </div>
                         <span class="font-bold text-neutral-900 dark:text-white text-sm">{{ att.employee?.fullName }}</span>
                       </div>
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <span class="font-bold text-neutral-700 dark:text-neutral-300 text-sm">{{ formatShiftDate(att.checkIn) }}</span>
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <div class="flex items-center gap-1.5">
                         <div class="w-1.5 h-1.5 rounded-full bg-success-500"></div>
                         <span class="font-mono text-xs text-neutral-600 dark:text-neutral-400">{{ formatShiftTime(att.checkIn) }}</span>
                       </div>
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <template v-if="att.checkOut">
                         <div class="flex items-center gap-1.5">
                           <div class="w-1.5 h-1.5 rounded-full bg-error-500"></div>
@@ -762,11 +663,11 @@
                         </div>
                       </template>
                       <span v-else class="text-[10px] font-bold text-success-600 bg-success-50 dark:bg-success-900/20 px-2 py-0.5 rounded-lg uppercase tracking-widest">Active</span>
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <span class="font-mono text-xs text-neutral-600 dark:text-neutral-400">{{ att.checkOut ? calculateDuration(att.checkIn, att.checkOut) : calculateDuration(att.checkIn) }}</span>
-                    </td>
-                    <td class="px-6 py-4">
+                    </TableCell>
+                    <TableCell>
                       <div class="flex items-center gap-2">
                         <span
                           :class="getStatusClass(att.status)"
@@ -778,298 +679,190 @@
                           +{{ att.lateMinute }}min
                         </span>
                       </div>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
               <!-- Empty State -->
               <div v-if="attendance.length === 0" class="flex flex-col items-center justify-center py-16 text-center">
                 <div class="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-neutral-300 dark:text-neutral-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <ClockIcon class="w-8 h-8 text-neutral-300 dark:text-neutral-600" />
                 </div>
                 <p class="font-bold text-neutral-500 dark:text-neutral-400 mb-1">No attendance records</p>
                 <p class="text-xs text-neutral-400">Records will appear when staff clock in</p>
               </div>
-            </div>
           </div>
         </div>
-      </div>
+      </TabsContent>
+    </Tabs>
 
-      <!-- Modals (Employee & Shift) -->
-      <!-- (Integrated with salary fields) -->
-      <div
-        v-if="showEmployeeModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 animate-in fade-in zoom-in duration-300"
-        >
-          <div
-            class="p-8 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center"
-          >
-            <h3
-              class="text-2xl font-black text-neutral-900 dark:text-white uppercase tracking-tight"
-            >
-              {{ editingEmployeeId ? "Edit Staff Member" : "Add Staff Member" }}
-            </h3>
-            <button
-              @click="showEmployeeModal = false"
-              class="text-neutral-400 hover:text-neutral-600 transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2.5"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            </button>
-          </div>
-          <div class="p-8 space-y-6">
+      <Dialog v-model:open="showEmployeeModal">
+        <DialogContent class="sm:max-w-xl bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+          <DialogHeader>
+            <DialogTitle class="text-2xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">{{ editingEmployeeId ? "Edit Staff Member" : "Add Staff Member" }}</DialogTitle>
+          </DialogHeader>
+          <div class="space-y-6">
             <div class="grid grid-cols-2 gap-6">
-              <div>
-                <label
-                  class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                  >Full Name</label
-                >
-                <input
-                  type="text"
-                  v-model="newEmployee.fullName"
-                  class="input w-full"
-                  placeholder="e.g. Emma S."
-                />
+              <div class="space-y-2">
+                <Label class="text-xs font-bold uppercase tracking-widest">Full Name</Label>
+                <Input v-model="newEmployee.fullName" placeholder="e.g. Emma S." />
               </div>
-              <div>
-                <label
-                  class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                  >Phone Number</label
-                >
-                <input
-                  type="text"
-                  v-model="newEmployee.phone"
-                  class="input w-full"
-                />
+              <div class="space-y-2">
+                <Label class="text-xs font-bold uppercase tracking-widest">Phone Number</Label>
+                <Input v-model="newEmployee.phone" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-6">
-              <div>
-                <label
-                  class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                  >Position</label
-                >
-                <select
-                  v-model="newEmployee.position"
-                  class="input w-full bg-neutral-50 dark:bg-neutral-800"
-                >
-                  <option value="Barista">Barista</option>
-                  <option value="Chef">Chef</option>
-                  <option value="Manager">Manager</option>
-                  <option value="Server">Server</option>
-                </select>
+              <div class="space-y-2">
+                <Label class="text-xs font-bold uppercase tracking-widest">Position</Label>
+                <Select v-model="newEmployee.position">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select position" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Barista">Barista</SelectItem>
+                    <SelectItem value="Chef">Chef</SelectItem>
+                    <SelectItem value="Manager">Manager</SelectItem>
+                    <SelectItem value="Server">Server</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div>
-                <label
-                  class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                  >Branch</label
-                >
-                <select
-                  v-model="newEmployee.branchId"
-                  class="input w-full bg-neutral-50 dark:bg-neutral-800"
-                >
-                  <option
-                    v-for="b in branches"
-                    :key="b.branchId"
-                    :value="b.branchId"
-                  >
-                    {{ b.name }}
-                  </option>
-                </select>
+              <div class="space-y-2">
+                <Label class="text-xs font-bold uppercase tracking-widest">Branch</Label>
+                <Select v-model="selectedBranchId">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="b in branches" :key="b.branchId" :value="String(b.branchId)">{{ b.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-
-            <!-- Security Role -->
             <div class="p-6 bg-neutral-100 dark:bg-neutral-800 rounded-3xl space-y-4">
-               <h4 class="text-xs font-black text-neutral-500 uppercase tracking-widest">Access Control</h4>
-               <div>
-                 <label class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block">System Role</label>
-                 <select v-model="newEmployee.roleId" class="input w-full bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-700">
-                   <option :value="null">No System Account</option>
-                   <option v-for="role in roles" :key="role.roleId" :value="role.roleId">{{ role.roleName }}</option>
-                 </select>
-                 <p class="text-[10px] text-neutral-400 mt-2 italic">Assigning a role grants this employee access to the dashboard or POS.</p>
-               </div>
+              <h4 class="text-xs font-black text-neutral-500 uppercase tracking-widest">Access Control</h4>
+              <div class="space-y-2">
+                <Label class="text-xs font-bold uppercase tracking-widest">System Role</Label>
+                <Select v-model="selectedRoleId">
+                  <SelectTrigger>
+                    <SelectValue placeholder="No System Account" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No System Account</SelectItem>
+                    <SelectItem v-for="role in roles" :key="role.roleId" :value="String(role.roleId)">{{ role.roleName }}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p class="text-[10px] text-neutral-400 mt-2 italic">Assigning a role grants this employee access to the dashboard or POS.</p>
+              </div>
             </div>
-
-            <!-- Salary Info -->
-            <div
-              class="p-6 bg-primary-500/5 rounded-3xl border border-primary-500/10 space-y-4"
-            >
-              <h4
-                class="text-xs font-black text-primary-600 uppercase tracking-widest"
-              >
-                Remuneration
-              </h4>
+            <div class="p-6 bg-primary-500/5 rounded-3xl border border-primary-500/10 space-y-4">
+              <h4 class="text-xs font-black text-primary-600 uppercase tracking-widest">Remuneration</h4>
               <div class="grid grid-cols-2 gap-6">
-                <div>
-                  <label
-                    class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                    >Base Salary ($)</label
-                  >
-                  <input
-                    type="number"
-                    v-model="newEmployee.baseSalary"
-                    class="input w-full bg-white dark:bg-neutral-900"
-                    step="0.01"
-                  />
+                <div class="space-y-2">
+                  <Label class="text-xs font-bold uppercase tracking-widest">Base Salary ($)</Label>
+                  <Input type="number" v-model="newEmployee.baseSalary" step="0.01" />
                 </div>
-                <div>
-                  <label
-                    class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                    >Hourly Rate ($)</label
-                  >
-                  <input
-                    type="number"
-                    v-model="newEmployee.hourlyRate"
-                    class="input w-full bg-white dark:bg-neutral-900"
-                    step="0.01"
-                  />
+                <div class="space-y-2">
+                  <Label class="text-xs font-bold uppercase tracking-widest">Hourly Rate ($)</Label>
+                  <Input type="number" v-model="newEmployee.hourlyRate" step="0.01" />
                 </div>
               </div>
             </div>
           </div>
-          <div
-            class="p-8 bg-neutral-50 dark:bg-neutral-800/50 flex justify-end gap-4"
-          >
-            <button
-              @click="showEmployeeModal = false"
-              class="btn-secondary px-8"
-            >
-              Cancel
-            </button>
-            <button @click="createEmployee" class="btn-primary px-8">
-              Confirm Staff
-            </button>
-          </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button @click="showEmployeeModal = false" variant="secondary" class="px-8">Cancel</Button>
+            <Button @click="createEmployee" variant="default" class="px-8">Confirm Staff</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <!-- Shift Modal -->
-      <div
-        v-if="showShiftModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 animate-in fade-in zoom-in duration-300"
-        >
-          <div
-            class="p-8 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-neutral-50/50 dark:bg-neutral-800/50"
-          >
-            <h3
-              class="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight"
-            >
-              Assign New Shift
-            </h3>
-          </div>
-          <div class="p-8 space-y-6">
-            <div>
-              <label
-                class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                >Select Employee</label
-              >
-              <select v-model="newShift.employeeId" class="input w-full">
-                <option
-                  v-for="emp in employees"
-                  :key="emp.employeeId"
-                  :value="emp.employeeId"
-                >
-                  {{ emp.fullName }}
-                </option>
-              </select>
+      <Dialog v-model:open="showShiftModal">
+        <DialogContent class="sm:max-w-lg bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800">
+          <DialogHeader>
+            <DialogTitle class="text-xl font-black text-neutral-900 dark:text-white uppercase tracking-tight">Assign New Shift</DialogTitle>
+          </DialogHeader>
+          <div class="space-y-6">
+            <div class="space-y-2">
+              <Label class="text-xs font-bold uppercase tracking-widest">Select Employee</Label>
+              <Select v-model="selectedShiftEmployeeId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select employee" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="emp in employees" :key="emp.employeeId" :value="String(emp.employeeId)">{{ emp.fullName }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-
-            <!-- Shift Templates -->
-            <div>
-              <label class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Quick Template</label>
+            <div class="space-y-2">
+              <Label class="text-xs font-bold uppercase tracking-widest">Quick Template</Label>
               <div class="grid grid-cols-3 gap-2">
-                <button
+                <Button
                   v-for="tpl in shiftTemplates"
                   :key="tpl.name"
+                  variant="outline"
+                  :class="selectedTemplate === tpl.name ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-600' : ''"
+                  class="flex-col h-auto py-3 gap-0"
                   @click="applyShiftTemplate(tpl)"
-                  class="p-3 rounded-xl border text-center transition-all hover:shadow-md"
-                  :class="selectedTemplate === tpl.name
-                    ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-600'
-                    : 'border-neutral-200 dark:border-neutral-700 text-neutral-600 dark:text-neutral-400 hover:border-primary-300'"
                 >
                   <span class="text-lg block mb-1">{{ tpl.icon }}</span>
                   <span class="text-xs font-bold block">{{ tpl.name }}</span>
                   <span class="text-[10px] text-neutral-400 block">{{ tpl.label }}</span>
-                </button>
+                </Button>
               </div>
             </div>
-
-            <!-- Shift Date -->
-            <div>
-              <label class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block">Shift Date</label>
-              <input type="date" v-model="shiftDate" class="input w-full" />
+            <div class="space-y-2">
+              <Label class="text-xs font-bold uppercase tracking-widest">Shift Date</Label>
+              <Input type="date" v-model="shiftDate" />
             </div>
-
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                  >Start</label
-                >
-                <input
-                  type="datetime-local"
-                  v-model="newShift.shiftStart"
-                  class="input w-full"
-                />
+              <div class="space-y-2">
+                <Label class="text-xs font-bold uppercase tracking-widest">Start</Label>
+                <Input type="datetime-local" v-model="newShift.shiftStart" />
               </div>
-              <div>
-                <label
-                  class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2 block"
-                  >End</label
-                >
-                <input
-                  type="datetime-local"
-                  v-model="newShift.shiftEnd"
-                  class="input w-full"
-                />
+              <div class="space-y-2">
+                <Label class="text-xs font-bold uppercase tracking-widest">End</Label>
+                <Input type="datetime-local" v-model="newShift.shiftEnd" />
               </div>
             </div>
           </div>
-          <div
-            class="p-8 bg-neutral-50 dark:bg-neutral-800/50 flex justify-end gap-3"
-          >
-            <button @click="showShiftModal = false" class="btn-secondary">
-              Cancel
-            </button>
-            <button @click="createShift" class="btn-primary">
-              Schedule Shift
-            </button>
-          </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button @click="showShiftModal = false" variant="secondary">Cancel</Button>
+            <Button @click="createShift" variant="default">Schedule Shift</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Delete Shift Confirmation -->
+      <AlertDialog v-model:open="showDeleteShiftAlert">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Shift</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this shift? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction @click="executeDeleteShift">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, watch, computed, onMounted } from "vue";
+import { ref, reactive, watch, computed, onMounted } from "vue"
+import { PlusIcon, PencilIcon, ChevronLeftIcon, ChevronRightIcon, PrinterIcon, ClockIcon, Trash2Icon, AlertTriangleIcon } from "@lucide/vue"
 
 definePageMeta({
   layout: false,
-});
+})
 
-const { get, post, del } = useApi();
-const toast = useToast();
+const { get, post, del } = useApi()
+const toast = useToast()
 
-// Tabs
-const activeTab = ref("overview");
+const activeTab = ref("overview")
 const tabs = [
   { id: "overview", name: "Overview" },
   { id: "employees", name: "Employees" },
@@ -1097,10 +890,16 @@ const payrollDates = reactive({
 });
 
 // UI State
-const loadingEmployees = ref(false);
-const showEmployeeModal = ref(false);
-const showShiftModal = ref(false);
-const editingEmployeeId = ref<number | null>(null);
+const loadingEmployees = ref(false)
+const showEmployeeModal = ref(false)
+const showShiftModal = ref(false)
+const editingEmployeeId = ref<number | null>(null)
+const showDeleteShiftAlert = ref(false)
+const shiftToDelete = ref<number | null>(null)
+
+const selectedBranchId = ref("")
+const selectedRoleId = ref("none")
+const selectedShiftEmployeeId = ref("")
 
 const newEmployee = reactive({
   fullName: "",
@@ -1111,7 +910,7 @@ const newEmployee = reactive({
   baseSalary: 0,
   hourlyRate: 0,
   roleId: null as number | null,
-});
+})
 
 const newShift = reactive({
   employeeId: null as number | null,
@@ -1377,57 +1176,66 @@ const fetchRoles = async () => {
 // -- Actions --
 const createEmployee = async () => {
   try {
+    newEmployee.branchId = selectedBranchId.value ? Number(selectedBranchId.value) : null
+    newEmployee.roleId = selectedRoleId.value === "none" ? null : Number(selectedRoleId.value)
     if (editingEmployeeId.value) {
-      await useApi().put(`/employees/${editingEmployeeId.value}`, newEmployee);
+      await useApi().put(`/employees/${editingEmployeeId.value}`, newEmployee)
     } else {
-      await post("/employees/add", newEmployee);
+      await post("/employees/add", newEmployee)
     }
-    showEmployeeModal.value = false;
-    toast.success(
-      editingEmployeeId.value
-        ? "Staff member updated"
-        : "New staff member added",
-    );
-    fetchEmployees();
+    showEmployeeModal.value = false
+    toast.success(editingEmployeeId.value ? "Staff member updated" : "New staff member added")
+    fetchEmployees()
   } catch (err) {
-    toast.error("Failed to save employee");
+    toast.error("Failed to save employee")
   }
-};
+}
 
 const editEmployee = (emp: any) => {
-  editingEmployeeId.value = emp.employeeId;
-  newEmployee.fullName = emp.fullName;
-  newEmployee.phone = emp.phone;
-  newEmployee.position = emp.position;
-  newEmployee.branchId = emp.branch?.branchId || null;
-  newEmployee.status = emp.status;
-  newEmployee.baseSalary = emp.baseSalary;
-  newEmployee.hourlyRate = emp.hourlyRate;
-  newEmployee.roleId = emp.roleId || null;
-  showEmployeeModal.value = true;
-};
+  editingEmployeeId.value = emp.employeeId
+  newEmployee.fullName = emp.fullName
+  newEmployee.phone = emp.phone
+  newEmployee.position = emp.position
+  newEmployee.branchId = emp.branch?.branchId || null
+  newEmployee.status = emp.status
+  newEmployee.baseSalary = emp.baseSalary
+  newEmployee.hourlyRate = emp.hourlyRate
+  newEmployee.roleId = emp.roleId || null
+  selectedBranchId.value = emp.branch?.branchId ? String(emp.branch.branchId) : ""
+  selectedRoleId.value = emp.roleId ? String(emp.roleId) : "none"
+  showEmployeeModal.value = true
+}
 
 const createShift = async () => {
   try {
-    await post("/shifts", newShift);
-    showShiftModal.value = false;
-    toast.success("Shift scheduled successfully");
-    fetchShifts();
+    newShift.employeeId = selectedShiftEmployeeId.value ? Number(selectedShiftEmployeeId.value) : null
+    await post("/shifts", newShift)
+    showShiftModal.value = false
+    toast.success("Shift scheduled successfully")
+    fetchShifts()
   } catch (err) {
-    toast.error("Failed to create shift");
+    toast.error("Failed to create shift")
   }
-};
+}
 
-const deleteShift = async (id: number) => {
-  if (!confirm("Delete shift?")) return;
+const confirmDeleteShift = (id: number) => {
+  shiftToDelete.value = id
+  showDeleteShiftAlert.value = true
+}
+
+const executeDeleteShift = async () => {
+  if (!shiftToDelete.value) return
   try {
-    await del(`/shifts/${id}`);
-    toast.success("Shift deleted");
-    fetchShifts();
+    await del(`/shifts/${shiftToDelete.value}`)
+    toast.success("Shift deleted")
+    fetchShifts()
   } catch (err) {
-    toast.error("Failed to delete shift");
+    toast.error("Failed to delete shift")
+  } finally {
+    showDeleteShiftAlert.value = false
+    shiftToDelete.value = null
   }
-};
+}
 
 // -- Computed --
 const lateTodayCount = computed(() => {

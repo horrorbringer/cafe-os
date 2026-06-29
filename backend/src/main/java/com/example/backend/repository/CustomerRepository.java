@@ -20,4 +20,13 @@ public interface CustomerRepository extends JpaRepository<CustomerEntity, Long> 
     java.util.Optional<CustomerEntity> findByPhone(String phone);
 
     java.util.Optional<CustomerEntity> findByFirebaseUid(String firebaseUid);
+
+    long countByDeletedAtIsNull();
+
+    long countByDeletedAtIsNullAndLoyaltyPointsGreaterThan(Integer loyaltyPoints);
+
+    long countByDeletedAtIsNullAndMembershipLevel(String membershipLevel);
+
+    @Query("SELECT COALESCE(SUM(c.loyaltyPoints), 0) FROM CustomerEntity c WHERE c.deletedAt IS NULL")
+    Long sumOutstandingLoyaltyPoints();
 }

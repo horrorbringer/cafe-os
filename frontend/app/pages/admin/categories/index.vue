@@ -1,7 +1,13 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb :items="[{ label: 'Categories' }]" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Categories</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div class="flex items-center justify-between">
@@ -13,56 +19,21 @@
             Manage your product categories and hierarchy
           </p>
         </div>
-        <button
-          @click="openCreateModal"
-          class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-all flex items-center gap-2 shadow-lg shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 active:scale-95"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-4 h-4"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M5 12h14" />
-            <path d="M12 5v14" />
-          </svg>
+        <Button @click="openCreateModal">
+          <PlusIcon class="w-4 h-4" />
           Add Category
-        </button>
+        </Button>
       </div>
 
-      <!-- Category Tree -->
+      <!-- Loading -->
       <div v-if="loading" class="space-y-4">
-        <div
-          v-for="i in 3"
-          :key="i"
-          class="h-16 bg-neutral-100 dark:bg-neutral-800 rounded-lg animate-pulse"
-        />
+        <div v-for="i in 3" :key="i" class="h-16 bg-neutral-100 dark:bg-neutral-800 rounded-lg animate-pulse" />
       </div>
 
-      <div
-        v-else-if="categories.length === 0"
-        class="text-center py-12 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800"
-      >
-        <div
-          class="w-16 h-16 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            class="w-8 h-8 text-neutral-400"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-          >
-            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
-            <path
-              d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"
-            />
-          </svg>
+      <!-- Empty -->
+      <div v-else-if="categories.length === 0" class="text-center py-12 bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800">
+        <div class="w-16 h-16 bg-neutral-100 dark:bg-neutral-800 rounded-full flex items-center justify-center mx-auto mb-4">
+          <BookOpenIcon class="w-8 h-8 text-neutral-400" />
         </div>
         <h3 class="text-lg font-medium text-neutral-900 dark:text-white">
           No categories found
@@ -70,234 +41,156 @@
         <p class="text-neutral-500 mt-1">
           Get started by creating your first category.
         </p>
-        <button
-          @click="openCreateModal"
-          class="mt-4 text-primary-600 hover:text-primary-700 font-medium"
-        >
+        <Button variant="link" class="mt-4" @click="openCreateModal">
           Create Category
-        </button>
+        </Button>
       </div>
 
-      <div
-        v-else
-        class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6"
-      >
+      <!-- Category Tree -->
+      <div v-else class="bg-white dark:bg-neutral-900 rounded-xl border border-neutral-200 dark:border-neutral-800 p-6">
         <div class="space-y-2">
-          <!-- Recursive Tree Items -->
           <CategoryTreeItem
             v-for="category in categories"
             :key="category.categoryId"
             :category="category"
             @edit="openEditModal"
-            @delete="deleteCategory"
+            @delete="confirmDelete"
           />
         </div>
       </div>
 
-      <!-- Create/Edit Modal -->
-      <div
-        v-if="showModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-        @click.self="closeModal"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-neutral-200 dark:border-neutral-800 flex flex-col animate-in zoom-in-95 duration-200"
-        >
-          <div
-            class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center bg-white dark:bg-neutral-900"
-          >
-            <div>
-              <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
-                {{ isEditing ? "Edit Category" : "New Category" }}
-              </h3>
-            </div>
-            <button
-              @click="closeModal"
-              class="text-neutral-400 hover:text-neutral-600 p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-
-          <form @submit.prevent="saveCategory" class="p-6 space-y-4">
-            <!-- Bilingual Name Section -->
+      <!-- Create/Edit Dialog -->
+      <Dialog v-model:open="showModal">
+        <DialogContent class="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{{ isEditing ? "Edit Category" : "New Category" }}</DialogTitle>
+          </DialogHeader>
+          <form @submit.prevent="saveCategory" class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >
-                  🇺🇸 Category Name <span class="text-error-500">*</span>
-                </label>
-                <input
-                  v-model="form.name"
-                  type="text"
-                  required
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
-                  placeholder="e.g. Beverages"
-                />
+              <div class="space-y-2">
+                <Label for="name">🇺🇸 Name <span class="text-error-500">*</span></Label>
+                <Input id="name" v-model="form.name" required placeholder="e.g. Beverages" />
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >
-                  🇰🇭 Khmer Name (Optional)
-                </label>
-                <input
-                  v-model="form.nameKh"
-                  type="text"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow font-khmer"
-                  placeholder="ឧទាហរណ៍៖ ភេសជ្ជៈ"
-                />
+              <div class="space-y-2">
+                <Label for="nameKh">🇰🇭 Khmer Name</Label>
+                <Input id="nameKh" v-model="form.nameKh" placeholder="ឧទាហរណ៍៖ ភេសជ្ជៈ" class="font-khmer" />
               </div>
             </div>
-
-            <!-- Bilingual Description Section -->
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >
-                  🇺🇸 Description
-                </label>
-                <textarea
-                  v-model="form.description"
-                  rows="2"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
-                  placeholder="Optional description..."
-                ></textarea>
+              <div class="space-y-2">
+                <Label for="desc">🇺🇸 Description</Label>
+                <Textarea id="desc" v-model="form.description" placeholder="Optional description..." />
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >
-                  🇰🇭 Khmer Description
-                </label>
-                <textarea
-                  v-model="form.descriptionKh"
-                  rows="2"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow font-khmer"
-                  placeholder="ព័ត៌មានលម្អិត..."
-                ></textarea>
+              <div class="space-y-2">
+                <Label for="descKh">🇰🇭 Khmer Description</Label>
+                <Textarea id="descKh" v-model="form.descriptionKh" placeholder="ព័ត៌មានលម្អិត..." class="font-khmer" />
               </div>
             </div>
-
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-              >
-                Parent Category
-              </label>
-              <select
-                v-model="form.parentId"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500 transition-shadow"
-              >
-                <option :value="null">None (Root Category)</option>
-                <option
-                  v-for="cat in flattenedCategories"
-                  :key="cat.id"
-                  :value="cat.id"
-                  :disabled="
-                    isEditing &&
-                    (cat.id === currentId || isDescendant(cat.id, currentId))
-                  "
-                >
-                  {{ cat.name }}
-                </option>
-              </select>
-              <p v-if="isEditing" class="text-xs text-neutral-500 mt-1">
-                Cannot select itself or its descendants as parent.
-              </p>
-            </div>
-
-            <div class="pt-4 flex gap-3">
-              <button
-                type="button"
-                @click="closeModal"
-                class="flex-1 py-2.5 text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                :disabled="saving"
-                class="flex-1 py-2.5 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:bg-neutral-300 disabled:cursor-not-allowed text-white rounded-lg transition-all shadow-lg shadow-primary-500/20"
-              >
-                {{ saving ? "Saving..." : isEditing ? "Update" : "Create" }}
-              </button>
+            <div class="space-y-2">
+              <Label>Parent Category</Label>
+              <Select v-model="selectedParentId">
+                <SelectTrigger>
+                  <SelectValue placeholder="None (Root Category)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="root">None (Root Category)</SelectItem>
+                  <SelectItem
+                    v-for="cat in flattenedCategories"
+                    :key="cat.id"
+                    :value="String(cat.id)"
+                    :disabled="isEditing && (cat.id === currentId || isDescendant(cat.id, currentId))"
+                  >
+                    {{ cat.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p v-if="isEditing" class="text-xs text-neutral-500 mt-1">Cannot select itself or its descendants as parent.</p>
             </div>
           </form>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button variant="secondary" @click="closeModal">Cancel</Button>
+            <Button type="submit" :disabled="saving" variant="default" @click="saveCategory">{{ saving ? "Saving..." : isEditing ? "Update" : "Create" }}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <!-- Delete Confirmation -->
+      <AlertDialog v-model:open="showDeleteAlert">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Category</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete <strong>{{ categoryToDelete?.name }}</strong> and all its sub-categories? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction @click="executeDelete">Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted } from "vue";
-import CategoryTreeItem from "~/components/admin/CategoryTreeItem.vue";
+import { ref, reactive, computed, onMounted } from "vue"
+import { PlusIcon, BookOpenIcon } from "@lucide/vue"
+import CategoryTreeItem from "~/components/admin/CategoryTreeItem.vue"
 
 definePageMeta({
   layout: false,
-});
+})
 
-const { get, post, put, del } = useApi();
-const toast = useToast();
+const { get, post, put, del } = useApi()
+const toast = useToast()
 
 interface Category {
-  categoryId: number;
-  name: string;
-  nameKh?: string;
-  description?: string;
-  descriptionKh?: string;
-  parentId?: number;
-  children?: Category[];
+  categoryId: number
+  name: string
+  nameKh?: string
+  description?: string
+  descriptionKh?: string
+  parentId?: number
+  children?: Category[]
 }
 
-const categories = ref<Category[]>([]);
-const loading = ref(true);
-const showModal = ref(false);
-const isEditing = ref(false);
-const saving = ref(false);
-const currentId = ref<number | null>(null);
+const categories = ref<Category[]>([])
+const loading = ref(true)
+const showModal = ref(false)
+const isEditing = ref(false)
+const saving = ref(false)
+const currentId = ref<number | null>(null)
+const showDeleteAlert = ref(false)
+const categoryToDelete = ref<Category | null>(null)
+const selectedParentId = ref("root")
 
 const form = reactive({
   name: "",
   nameKh: "",
   description: "",
   descriptionKh: "",
-  parentId: null as number | null,
-});
+})
 
 const fetchCategories = async () => {
-  loading.value = true;
+  loading.value = true
   try {
-    const data = await get<Category[]>("/categories");
-    categories.value = data || [];
+    const data = await get<Category[]>("/categories")
+    categories.value = data || []
   } catch (err) {
-    console.error(err);
-    toast.error("Failed to load categories");
+    console.error(err)
+    toast.error("Failed to load categories")
   } finally {
-    loading.value = false;
+    loading.value = false
   }
-};
+}
 
 onMounted(() => {
-  fetchCategories();
-});
+  fetchCategories()
+})
 
-// Flatten categories for dropdown
 const flattenedCategories = computed(() => {
-  const result: { id: number; name: string; parentId?: number }[] = [];
+  const result: { id: number; name: string; parentId?: number }[] = []
 
   const traverse = (cats: Category[], prefix = "") => {
     for (const cat of cats) {
@@ -305,125 +198,123 @@ const flattenedCategories = computed(() => {
         id: cat.categoryId,
         name: prefix + cat.name,
         parentId: cat.parentId,
-      });
+      })
       if (cat.children && cat.children.length > 0) {
-        traverse(cat.children, prefix + "— ");
+        traverse(cat.children, prefix + "— ")
       }
     }
-  };
+  }
 
-  traverse(categories.value);
-  return result;
-});
+  traverse(categories.value)
+  return result
+})
 
-// Check if a category is a descendant of another (to prevent circular references)
-const isDescendant = (
-  childId: number,
-  potentialAncestorId: number | null,
-): boolean => {
-  if (!potentialAncestorId) return false;
-  // Find the child in flattened list to get its parent
-  // This logic is a bit complex with just flattened list if we don't have full tree access easily by ID.
-  // However, for the dropdown disable logic:
-  // We want to disable X if X is a child of Current being edited.
-  // Actually, we want to disable selecting `Current` or any of `Current`'s children as the `Parent`.
-
-  // So: is `cat.id` (the option being rendered) equal to `currentId` OR is it a child/grandchild of `currentId`?
-
-  if (childId === potentialAncestorId) return true;
+const isDescendant = (childId: number, potentialAncestorId: number | null): boolean => {
+  if (!potentialAncestorId) return false
+  if (childId === potentialAncestorId) return true
 
   const findChildrenIds = (cats: Category[], targetId: number): number[] => {
-    let ids: number[] = [];
+    let ids: number[] = []
     for (const cat of cats) {
       if (cat.categoryId === targetId) {
-        // Found the target, collect all its children IDs recursively
         const collectIds = (c: Category[]) => {
           for (const child of c) {
-            ids.push(child.categoryId);
-            if (child.children) collectIds(child.children);
+            ids.push(child.categoryId)
+            if (child.children) collectIds(child.children)
           }
-        };
-        if (cat.children) collectIds(cat.children);
-        return ids;
+        }
+        if (cat.children) collectIds(cat.children)
+        return ids
       }
       if (cat.children) {
-        const found = findChildrenIds(cat.children, targetId);
-        if (found.length > 0) return found;
+        const found = findChildrenIds(cat.children, targetId)
+        if (found.length > 0) return found
       }
     }
-    return ids;
-  };
+    return ids
+  }
 
-  const descendants = findChildrenIds(categories.value, potentialAncestorId);
-  return descendants.includes(childId);
-};
+  const descendants = findChildrenIds(categories.value, potentialAncestorId)
+  return descendants.includes(childId)
+}
 
 const openCreateModal = () => {
-  isEditing.value = false;
-  currentId.value = null;
-  form.name = "";
-  form.nameKh = "";
-  form.description = "";
-  form.descriptionKh = "";
-  form.parentId = null;
-  showModal.value = true;
-};
+  isEditing.value = false
+  currentId.value = null
+  form.name = ""
+  form.nameKh = ""
+  form.description = ""
+  form.descriptionKh = ""
+  selectedParentId.value = "root"
+  showModal.value = true
+}
 
 const openEditModal = (category: Category) => {
-  isEditing.value = true;
-  currentId.value = category.categoryId;
-  form.name = category.name;
-  form.nameKh = category.nameKh || "";
-  form.description = category.description || "";
-  form.descriptionKh = category.descriptionKh || "";
-  form.parentId = category.parentId || null; // This might be undefined in the object if not populated, but DTO should have it. Keep in mind backend response DTO.
-  showModal.value = true;
-};
+  isEditing.value = true
+  currentId.value = category.categoryId
+  form.name = category.name
+  form.nameKh = category.nameKh || ""
+  form.description = category.description || ""
+  form.descriptionKh = category.descriptionKh || ""
+  selectedParentId.value = category.parentId ? String(category.parentId) : "root"
+  showModal.value = true
+}
 
 const closeModal = () => {
-  showModal.value = false;
-};
+  showModal.value = false
+}
+
+const confirmDelete = (id: number) => {
+  categoryToDelete.value = categories.value.find(c => findInTree(c, id)) || null
+  showDeleteAlert.value = true
+}
+
+const findInTree = (cat: Category, id: number): boolean => {
+  if (cat.categoryId === id) return true
+  if (cat.children) return cat.children.some(c => findInTree(c, id))
+  return false
+}
+
+const executeDelete = async () => {
+  if (!categoryToDelete.value) return
+  try {
+    await del(`/categories/${categoryToDelete.value.categoryId}`)
+    toast.success("Category deleted")
+    await fetchCategories()
+  } catch (err) {
+    console.error(err)
+    toast.error("Failed to delete category")
+  } finally {
+    showDeleteAlert.value = false
+    categoryToDelete.value = null
+  }
+}
 
 const saveCategory = async () => {
-  if (!form.name) return;
+  if (!form.name) return
 
-  saving.value = true;
+  saving.value = true
   try {
-    const payload = { ...form };
-
-    if (isEditing.value && currentId.value) {
-      await put(`/categories/${currentId.value}`, payload);
-      toast.success("Category updated");
-    } else {
-      await post("/categories/add", payload);
-      toast.success("Category created");
+    const payload = {
+      ...form,
+      parentId: selectedParentId.value === "root" ? null : Number(selectedParentId.value),
     }
 
-    await fetchCategories();
-    closeModal();
+    if (isEditing.value && currentId.value) {
+      await put(`/categories/${currentId.value}`, payload)
+      toast.success("Category updated")
+    } else {
+      await post("/categories/add", payload)
+      toast.success("Category created")
+    }
+
+    await fetchCategories()
+    closeModal()
   } catch (err) {
-    console.error(err);
-    toast.error("Failed to save category");
+    console.error(err)
+    toast.error("Failed to save category")
   } finally {
-    saving.value = false;
+    saving.value = false
   }
-};
-
-const deleteCategory = async (id: number) => {
-  if (
-    !confirm(
-      "Are you sure? This will delete the category and all sub-categories.",
-    )
-  )
-    return;
-
-  try {
-    await del(`/categories/${id}`);
-    toast.success("Category deleted");
-    await fetchCategories();
-  } catch (err) {
-    console.error(err);
-    toast.error("Failed to delete category");
-  }
-};
+}
 </script>

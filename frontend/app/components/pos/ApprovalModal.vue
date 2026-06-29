@@ -1,38 +1,38 @@
 <template>
-  <div v-if="modelValue" class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="bg-neutral-800 rounded-3xl shadow-2xl w-full max-w-md border border-neutral-700 overflow-hidden flex flex-col max-h-[90vh]">
-      <!-- Header -->
+  <Dialog :open="modelValue" @update:open="$emit('update:modelValue', $event)">
+    <DialogContent class="sm:max-w-md bg-neutral-800 border-neutral-700 !p-0 overflow-hidden" :show-close-button="false">
       <div class="p-6 border-b border-neutral-700 flex justify-between items-center bg-neutral-800/50">
         <div>
-          <h3 class="text-xl font-black text-white uppercase tracking-tight">Manager Approval</h3>
-          <p class="text-neutral-400 text-xs font-bold uppercase tracking-widest mt-1">Required for {{ actionType }}</p>
+          <DialogTitle class="text-xl font-black text-white uppercase tracking-tight">Manager Approval</DialogTitle>
+          <DialogDescription class="text-neutral-400 text-xs font-bold uppercase tracking-widest mt-1">
+            Required for {{ actionType }}
+          </DialogDescription>
         </div>
         <button @click="$emit('update:modelValue', false)" class="p-2 rounded-xl hover:bg-neutral-700 text-neutral-400 transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6L6 18M6 6l12 12"/></svg>
         </button>
       </div>
 
-      <div class="p-6 space-y-6 overflow-y-auto custom-scrollbar">
-        <!-- Reason Selection -->
+      <div class="p-6 space-y-6 overflow-y-auto">
         <div>
           <label class="block text-xs font-black text-neutral-500 uppercase tracking-widest mb-3 italic">Reason for {{ actionType }}</label>
           <div class="grid grid-cols-2 gap-2">
-            <button 
-              v-for="r in commonReasons" 
+            <button
+              v-for="r in commonReasons"
               :key="r"
               @click="reason = r"
               :class="[
                 'py-3 px-4 rounded-xl text-xs font-bold border transition-all duration-200',
-                reason === r 
-                  ? 'bg-primary-500/20 border-primary-500 text-primary-400 shadow-lg shadow-primary-500/10' 
+                reason === r
+                  ? 'bg-primary-500/20 border-primary-500 text-primary-400 shadow-lg shadow-primary-500/10'
                   : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-500 hover:text-white'
               ]"
             >
               {{ r }}
             </button>
           </div>
-          
-          <input 
+
+          <input
             v-if="reason === 'Other'"
             v-model="otherReason"
             type="text"
@@ -41,27 +41,25 @@
           />
         </div>
 
-        <!-- PIN Entry Display -->
         <div>
           <label class="block text-xs font-black text-neutral-500 uppercase tracking-widest mb-3 italic text-center">Enter Manager PIN Code</label>
           <div class="flex justify-center gap-4 mb-4">
-            <div v-for="i in 4" :key="i" 
+            <div v-for="i in 4" :key="i"
               :class="[
                 'w-12 h-16 rounded-2xl border-2 flex items-center justify-center text-2xl font-black transition-all duration-300',
-                pin.length >= i 
-                  ? 'border-primary-500 text-white bg-primary-500/10 shadow-lg shadow-primary-500/10 scale-105' 
+                pin.length >= i
+                  ? 'border-primary-500 text-white bg-primary-500/10 shadow-lg shadow-primary-500/10 scale-105'
                   : 'border-neutral-700 text-neutral-600 bg-neutral-900'
               ]"
             >
-              <span v-if="pin.length >= i">•</span>
+              <span v-if="pin.length >= i">&bull;</span>
             </div>
           </div>
         </div>
 
-        <!-- Numeric Keypad -->
         <div class="grid grid-cols-3 gap-3">
-          <button 
-            v-for="n in [1,2,3,4,5,6,7,8,9]" 
+          <button
+            v-for="n in [1,2,3,4,5,6,7,8,9]"
             :key="n"
             @click="addNumber(n)"
             class="h-16 rounded-2xl bg-neutral-900 border border-neutral-700 text-xl font-bold text-white hover:bg-neutral-700 active:scale-95 transition-all"
@@ -76,15 +74,14 @@
         </div>
       </div>
 
-      <!-- Footer Actions -->
       <div class="p-6 bg-neutral-800/80 border-t border-neutral-700">
-        <button 
+        <button
           @click="submit"
           :disabled="pin.length < 4 || (reason === 'Other' && !otherReason) || loading"
           :class="[
             'w-full py-5 rounded-2xl text-white font-black uppercase tracking-widest shadow-xl transition-all duration-300 active:scale-[0.98]',
             pin.length === 4 && (reason !== 'Other' || otherReason) && !loading
-              ? 'bg-gradient-to-r from-primary-600 to-accent-600 hover:shadow-primary-500/20' 
+              ? 'bg-gradient-to-r from-primary-600 to-accent-600 hover:shadow-primary-500/20'
               : 'bg-neutral-700 text-neutral-500 cursor-not-allowed opacity-50'
           ]"
         >
@@ -95,8 +92,8 @@
           <span v-else>Authorize {{ actionType }}</span>
         </button>
       </div>
-    </div>
-  </div>
+    </DialogContent>
+  </Dialog>
 </template>
 
 <script setup lang="ts">
@@ -145,16 +142,3 @@ const submit = () => {
   emit('approve', { pin: pin.value, reason: finalReason })
 }
 </script>
-
-<style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #404040;
-  border-radius: 10px;
-}
-</style>

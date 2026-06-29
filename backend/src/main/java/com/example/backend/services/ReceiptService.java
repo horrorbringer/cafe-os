@@ -118,6 +118,8 @@ public class ReceiptService {
         receipt.setDiscountAmount(order.getDiscountAmount() != null ? order.getDiscountAmount() : 0.0);
         receipt.setTaxAmount(order.getTaxAmount() != null ? order.getTaxAmount() : 0.0);
         receipt.setTotalAmount(order.getTotalAmount() != null ? order.getTotalAmount() : 0.0);
+        receipt.setPointsRedeemed(order.getPointsRedeemed() != null ? order.getPointsRedeemed() : 0);
+        receipt.setPointsEarned(order.getPointsEarned() != null ? order.getPointsEarned() : 0);
 
         // Payment Info
         PaymentEntity payment = paymentRepository.findAll().stream()

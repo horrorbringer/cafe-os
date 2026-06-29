@@ -4,6 +4,6 @@
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
-    <UiToastContainer />
+    <Sonner />
   </div>
 </template>

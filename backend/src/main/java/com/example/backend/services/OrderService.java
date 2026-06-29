@@ -95,8 +95,28 @@ public class OrderService {
 
     // ... (rest of class)
 
-    private void deductInventoryForOrder(OrderEntity order) {
+    @Transactional
+    public void deductInventoryForOrder(Long orderId) {
+        OrderEntity order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with ID: " + orderId));
+        deductInventoryForOrder(order);
+        orderRepository.save(order);
+    }
+
+    public void deductInventoryForOrder(OrderEntity order) {
+        if (order.getInventoryDeducted() != null && order.getInventoryDeducted()) {
+            return;
+        }
+        if (order.getStatus() != OrderEntity.OrderStatus.PAID
+                && order.getStatus() != OrderEntity.OrderStatus.PREPARING
+                && order.getStatus() != OrderEntity.OrderStatus.READY
+                && order.getStatus() != OrderEntity.OrderStatus.COMPLETED) {
+            return;
+        }
+
         List<Map<String, Object>> lowStockItems = new java.util.ArrayList<>();
+        Map<Long, Double> totalIngredientsNeeded = new java.util.HashMap<>();
+        Map<Long, com.example.backend.model.IngredientEntity> ingredientsById = new java.util.HashMap<>();
         
         for (OrderItemEntity item : order.getItems()) {
             Long menuItemId = item.getMenuItem().getMenuItemId();
@@ -109,22 +129,44 @@ public class OrderService {
             for (com.example.backend.model.RecipeEntity recipe : recipes) {
                 com.example.backend.model.IngredientEntity ingredient = recipe.getIngredient();
                 Double quantityNeeded = recipe.getQuantityNeeded() * qty;
+                Long ingredientId = ingredient.getIngredientId();
+                totalIngredientsNeeded.merge(ingredientId, quantityNeeded, Double::sum);
+                ingredientsById.put(ingredientId, ingredient);
+            }
+        }
 
-                // Deduct from branch-specific stock
-                branchStockService.adjustStock(order.getBranch().getBranchId(), 
-                                            ingredient.getIngredientId(), 
-                                            -quantityNeeded);
+        for (Map.Entry<Long, Double> entry : totalIngredientsNeeded.entrySet()) {
+            Long ingredientId = entry.getKey();
+            Double totalNeeded = entry.getValue();
+            if (!branchStockService.isStockAvailable(order.getBranch().getBranchId(), ingredientId, totalNeeded)) {
+                com.example.backend.model.IngredientEntity ingredient = ingredientsById.get(ingredientId);
+                Double currentStock = branchStockService.getCurrentStock(order.getBranch().getBranchId(), ingredientId);
+                throw new InsufficientStockException(
+                    String.format("Insufficient stock for %s at this branch. Needed: %.2f %s, Available: %.2f %s",
+                    ingredient.getName(), totalNeeded, ingredient.getUnit(), currentStock, ingredient.getUnit())
+                );
+            }
+        }
 
-                // Check if now below reorder level (using global stock for alert, but could be branch-specific)
-                if (ingredient.getReorderLevel() != null && 
-                    ingredient.getCurrentStock() <= ingredient.getReorderLevel()) {
-                    Map<String, Object> item2 = new java.util.HashMap<>();
-                    item2.put("name", ingredient.getName());
-                    item2.put("currentStock", ingredient.getCurrentStock());
-                    item2.put("reorderLevel", ingredient.getReorderLevel());
-                    item2.put("unit", ingredient.getUnit().name());
-                    lowStockItems.add(item2);
-                }
+        for (Map.Entry<Long, Double> entry : totalIngredientsNeeded.entrySet()) {
+            Long ingredientId = entry.getKey();
+            Double quantityNeeded = entry.getValue();
+            com.example.backend.model.IngredientEntity ingredient = ingredientsById.get(ingredientId);
+
+            // Deduct from branch-specific stock
+            branchStockService.adjustStock(order.getBranch().getBranchId(), 
+                                        ingredientId, 
+                                        -quantityNeeded);
+
+            Double currentStock = branchStockService.getCurrentStock(order.getBranch().getBranchId(), ingredientId);
+            Double reorderLevel = ingredient.getReorderLevel() != null ? ingredient.getReorderLevel() : 0.0;
+            if (currentStock <= reorderLevel) {
+                Map<String, Object> item2 = new java.util.HashMap<>();
+                item2.put("name", ingredient.getName());
+                item2.put("currentStock", currentStock);
+                item2.put("reorderLevel", reorderLevel);
+                item2.put("unit", ingredient.getUnit().name());
+                lowStockItems.add(item2);
             }
         }
 
@@ -136,9 +178,15 @@ public class OrderService {
                 // Don't fail order if notification fails
             }
         }
+
+        order.setInventoryDeducted(true);
     }
 
     public void restoreInventoryForOrder(OrderEntity order) {
+        if (order.getInventoryDeducted() == null || !order.getInventoryDeducted()) {
+            return;
+        }
+
         for (OrderItemEntity item : order.getItems()) {
             Long menuItemId = item.getMenuItem().getMenuItemId();
             Integer qty = item.getQty();
@@ -156,6 +204,8 @@ public class OrderService {
                                             quantityNeeded);
             }
         }
+
+        order.setInventoryDeducted(false);
     }
 
     /**
@@ -197,7 +247,7 @@ public class OrderService {
                 throw new RuntimeException("Insufficient points! Hack detected.");
             }
             double redeemRate = loyaltyService.getRedeemRate();
-            discount = request.getPointsRedeemed() * redeemRate;
+            discount = Math.min(request.getPointsRedeemed() * redeemRate, subTotal);
         }
 
         double taxRate = 0.0; // Consistent with createOrder
@@ -243,7 +293,7 @@ public class OrderService {
         order.setStatus(OrderEntity.OrderStatus.valueOf(request.getStatus()));
         order.setCreatedAt(LocalDateTime.now());
         order.setUpdatedAt(LocalDateTime.now());
-        order.setPointsRedeemed(request.getPointsRedeemed() != null ? request.getPointsRedeemed() : 0);
+        order.setPointsRedeemed(0);
 
         // 4. Process order items and calculate subtotal
         List<OrderItemEntity> orderItems = request.getItems().stream()
@@ -262,6 +312,7 @@ public class OrderService {
 
         // 5. Apply Financials (SECURE CALCULATION)
         double discount = 0.0;
+        int actualPointsRedeemed = 0;
         if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
             if (customer == null) {
                 throw new RuntimeException("Cannot redeem points without a valid customer.");
@@ -271,9 +322,11 @@ public class OrderService {
                 throw new RuntimeException("Insufficient loyalty points for redemption!");
             }
             double redeemRate = loyaltyService.getRedeemRate();
-            discount = request.getPointsRedeemed() * redeemRate;
+            discount = Math.min(request.getPointsRedeemed() * redeemRate, subTotal);
+            actualPointsRedeemed = redeemRate > 0 ? (int) Math.ceil(discount / redeemRate) : 0;
         }
         order.setDiscountAmount(discount);
+        order.setPointsRedeemed(actualPointsRedeemed);
 
         // Simple Tax Logic (e.g. 0% for now, can be 0.10 for 10%)
         double taxRate = 0.0;
@@ -283,22 +336,24 @@ public class OrderService {
         double totalAmount = Math.max(0, subTotal - discount + taxAmount);
         order.setTotalAmount(totalAmount);
 
-        // 5.1 Process Loyalty Redemption (Point Deduction)
-        if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
-            loyaltyService.deductPoints(customer, request.getPointsRedeemed());
-        }
-
-        // 6. Save order (cascade will save items)
         // 6. Save order (cascade will save items)
         OrderEntity savedOrder = orderRepository.save(order);
+
+        // 6.1 Process Loyalty Redemption after save so the ledger can reference the order.
+        if (actualPointsRedeemed > 0) {
+            loyaltyService.deductPoints(customer, savedOrder, actualPointsRedeemed);
+        }
 
         // 6.1 Process Payment if included
         if (request.getStatus().equals("PAID") && request.getPaymentMethod() != null) {
             createPaymentForOrder(savedOrder, request);
         }
 
-        // 7. Deduct Inventory (Simple Logic)
-        deductInventoryForOrder(savedOrder);
+        // 7. Deduct inventory only once the order is paid/active.
+        if (savedOrder.getStatus() == OrderEntity.OrderStatus.PAID) {
+            deductInventoryForOrder(savedOrder);
+            savedOrder = orderRepository.save(savedOrder);
+        }
 
         // 8. Update Loyalty Points
         if (savedOrder.getCustomer() != null && savedOrder.getStatus() == OrderEntity.OrderStatus.PAID) {
@@ -489,14 +544,16 @@ public class OrderService {
             }
         }
 
-        // Award Points if becoming PAID
-        if (newStatus == OrderEntity.OrderStatus.PAID && currentStatus != OrderEntity.OrderStatus.PAID) {
-            loyaltyService.awardPoints(order);
-        }
-
         // Update Status
         order.setStatus(newStatus);
         order.setUpdatedAt(LocalDateTime.now());
+
+        // Award Points if becoming PAID. The status must be set first because
+        // LoyaltyService only awards points for PAID orders.
+        if (newStatus == OrderEntity.OrderStatus.PAID && currentStatus != OrderEntity.OrderStatus.PAID) {
+            deductInventoryForOrder(order);
+            loyaltyService.awardPoints(order);
+        }
 
         // --- SECURITY & LOGIC FIXES ---
 
@@ -508,6 +565,9 @@ public class OrderService {
         // 2. Revert Loyalty Points if order is REFUNDED
         if (newStatus == OrderEntity.OrderStatus.REFUND && order.getCustomer() != null) {
             loyaltyService.revertPoints(order);
+            if (order.getPointsRedeemed() != null && order.getPointsRedeemed() > 0) {
+                loyaltyService.refundPoints(order.getCustomer(), order, order.getPointsRedeemed());
+            }
         }
 
         // Log to Audit Trail
@@ -589,6 +649,7 @@ public class OrderService {
 
         // Discount (SECURE CALCULATION)
         double discount = 0.0;
+        int actualPointsRedeemed = 0;
         if (request.getPointsRedeemed() != null && request.getPointsRedeemed() > 0) {
             CustomerEntity customer = existingOrder.getCustomer();
             if (customer == null) {
@@ -597,10 +658,15 @@ public class OrderService {
             int availablePoints = customer.getLoyaltyPoints() != null ? customer.getLoyaltyPoints() : 0;
             // Note: Since this is an update, the points might have already been deducted.
             // But business rule says we can't modify PAID orders anyway (line 421).
+            if (availablePoints < request.getPointsRedeemed()) {
+                throw new RuntimeException("Insufficient loyalty points for redemption!");
+            }
             double redeemRate = loyaltyService.getRedeemRate();
-            discount = request.getPointsRedeemed() * redeemRate;
+            discount = Math.min(request.getPointsRedeemed() * redeemRate, subTotal);
+            actualPointsRedeemed = redeemRate > 0 ? (int) Math.ceil(discount / redeemRate) : 0;
         }
         existingOrder.setDiscountAmount(discount);
+        existingOrder.setPointsRedeemed(actualPointsRedeemed);
 
         // Tax (Align with createOrder logic)
         double taxRate = 0.0;

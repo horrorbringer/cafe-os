@@ -660,10 +660,11 @@
 
       <!-- Action buttons -->
       <div class="p-4 border-t border-neutral-700 space-y-2 bg-neutral-800">
-        <button
+        <Button
           @click="openPaymentModal"
           :disabled="cartItems.length === 0"
-          class="w-full btn-primary btn-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          size="lg"
+          class="w-full disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -679,126 +680,60 @@
             <line x1="2" x2="22" y1="10" y2="10" />
           </svg>
           Checkout
-        </button>
+        </Button>
         <div class="grid grid-cols-2 gap-2">
-          <button
+          <Button
             @click="openHoldOrderModal()"
             :disabled="cartItems.length === 0"
-            class="btn-secondary text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed"
+            variant="secondary"
+            class="text-neutral-300 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Hold Order
-          </button>
-          <button
+          </Button>
+          <Button
             @click="clearCart"
-            class="btn-ghost text-error-400 hover:bg-error-500/10"
+            variant="ghost"
+            class="text-error-400 hover:bg-error-500/10"
           >
             Clear Cart
-          </button>
+          </Button>
         </div>
       </div>
     </aside>
 
     <!-- Payment Modal -->
-    <!-- Order History Modal -->
-    <div
-      v-if="showOrderHistoryModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-2xl border border-neutral-700 flex flex-col max-h-[80vh]"
-      >
-        <div
-          class="p-4 border-b border-neutral-700 flex justify-between items-center"
-        >
-          <h3 class="text-lg font-bold text-white tracking-tight uppercase">
-            Order History
-          </h3>
-          <button
-            @click="showOrderHistoryModal = false"
-            class="text-neutral-400 hover:text-white transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="p-4 overflow-y-auto custom-scrollbar flex-1">
+    <Dialog v-model:open="showOrderHistoryModal">
+      <DialogContent class="sm:max-w-2xl bg-neutral-800 border-neutral-700">
+        <DialogHeader>
+          <DialogTitle class="text-white tracking-tight uppercase">Order History</DialogTitle>
+          <DialogDescription class="sr-only">Order history for recent orders</DialogDescription>
+        </DialogHeader>
+        <div class="overflow-y-auto custom-scrollbar space-y-3">
           <div v-if="orderLoading" class="flex justify-center p-8">
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"
-            ></div>
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
           </div>
-          <div
-            v-else-if="recentOrders.length === 0"
-            class="text-center p-8 text-neutral-500"
-          >
+          <div v-else-if="recentOrders.length === 0" class="text-center p-8 text-neutral-500">
             No recent orders found.
           </div>
-          <div v-else class="space-y-3">
-            <div
-              v-for="order in recentOrders"
-              :key="order.orderId"
-              class="bg-neutral-900 border border-neutral-700 rounded-xl p-4 hover:border-neutral-500 transition-colors group"
-            >
-              <div class="flex justify-between items-start mb-2">
-                <div>
-                  <div
-                    class="text-sm font-black text-white font-mono tracking-tight"
-                  >
-                    {{ order.orderNo }}
-                  </div>
-                  <div class="text-[10px] text-neutral-500 font-bold uppercase">
-                    {{ new Date(order.createdAt).toLocaleTimeString() }} ·
-                    {{ order.customer?.name || "Walk-in" }}
-                  </div>
-                </div>
-                <div class="flex items-center gap-2">
-                  <span
-                    :class="[
-                      'text-[10px] px-2 py-0.5 rounded-full font-black uppercase',
-                      order.status === 'PAID'
-                        ? 'bg-success-500/10 text-success-400'
-                        : order.status === 'PENDING'
-                          ? 'bg-warning-500/10 text-warning-400'
-                          : 'bg-neutral-800 text-neutral-500',
-                    ]"
-                    >{{ order.status }}</span
-                  >
-                  <span class="text-white font-black"
-                    >${{ (order.totalAmount || 0).toFixed(2) }}</span
-                  >
-                </div>
+          <div v-for="order in recentOrders" :key="order.orderId" class="bg-neutral-900 border border-neutral-700 rounded-xl p-4 hover:border-neutral-500 transition-colors group">
+            <div class="flex justify-between items-start mb-2">
+              <div>
+                <div class="text-sm font-black text-white font-mono tracking-tight">{{ order.orderNo }}</div>
+                <div class="text-[10px] text-neutral-500 font-bold uppercase">{{ new Date(order.createdAt).toLocaleTimeString() }} · {{ order.customer?.name || "Walk-in" }}</div>
               </div>
-              <div
-                class="flex justify-end gap-2 mt-2 pt-2 border-t border-neutral-800"
-              >
-                <button
-                  v-if="order.status === 'PENDING'"
-                  @click="initiateAdjustment(order, 'VOID')"
-                  class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20"
-                >
-                  Void
-                </button>
-                <button
-                  v-if="order.status === 'PAID'"
-                  @click="initiateAdjustment(order, 'REFUND')"
-                  class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20"
-                >
-                  Refund
-                </button>
+              <div class="flex items-center gap-2">
+                <span :class="['text-[10px] px-2 py-0.5 rounded-full font-black uppercase', order.status === 'PAID' ? 'bg-success-500/10 text-success-400' : order.status === 'PENDING' ? 'bg-warning-500/10 text-warning-400' : 'bg-neutral-800 text-neutral-500']">{{ order.status }}</span>
+                <span class="text-white font-black">${{ (order.totalAmount || 0).toFixed(2) }}</span>
               </div>
+            </div>
+            <div class="flex justify-end gap-2 mt-2 pt-2 border-t border-neutral-800">
+              <button v-if="order.status === 'PENDING'" @click="initiateAdjustment(order, 'VOID')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-orange-500/10 text-orange-400 border border-orange-500/20 hover:bg-orange-500/20">Void</button>
+              <button v-if="order.status === 'PAID'" @click="initiateAdjustment(order, 'REFUND')" class="px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest bg-red-500/10 text-red-400 border border-red-500/20 hover:bg-red-500/20">Refund</button>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
 
     <!-- Approval Modal (PIN + Reason) -->
     <PosApprovalModal
@@ -807,871 +742,258 @@
       :loading="adjustmentLoading"
       @approve="handleApprovedAdjustment"
     />
-    <div
-      v-if="showPaymentModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-4xl h-[600px] flex overflow-hidden border border-neutral-700"
-      >
+    <Dialog v-model:open="showPaymentModal">
+      <DialogContent class="sm:max-w-4xl h-[600px] bg-neutral-800 border-neutral-700 !p-0 flex overflow-hidden" :show-close-button="false">
         <!-- Payment Methods (Left) -->
-        <div class="w-1/3 border-r border-neutral-700 p-6 bg-neutral-900/50">
+        <div class="w-1/3 border-r border-neutral-700 p-6 bg-neutral-900/50 flex flex-col">
           <h3 class="text-xl font-bold text-white mb-6">Payment Method</h3>
           <div class="space-y-3">
-            <button
-              @click="selectMethod('CASH')"
-              :class="[
-                'w-full p-4 rounded-xl flex items-center gap-3 transition-all',
-                selectedMethod === 'CASH'
-                  ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/50'
-                  : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700',
-              ]"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="20" height="12" x="2" y="6" rx="2" />
-                <circle cx="12" cy="12" r="2" />
-                <path d="M6 12h.01M18 12h.01" />
-              </svg>
+            <button @click="selectMethod('CASH')" :class="['w-full p-4 rounded-xl flex items-center gap-3 transition-all', selectedMethod === 'CASH' ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/50' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700']">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
               <span class="font-medium text-lg">Cash</span>
             </button>
-
-            <button
-              @click="selectMethod('KHQR')"
-              :class="[
-                'w-full p-4 rounded-xl flex items-center gap-3 transition-all',
-                selectedMethod === 'KHQR'
-                  ? 'bg-red-600 text-white shadow-lg shadow-red-900/50'
-                  : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700',
-              ]"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-6 h-6"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
-                <path d="M7 7h3v3H7z" />
-                <path d="M14 7h3v3h-3z" />
-                <path d="M7 14h3v3H7z" />
-                <path d="M14 14v3" />
-              </svg>
+            <button @click="selectMethod('KHQR')" :class="['w-full p-4 rounded-xl flex items-center gap-3 transition-all', selectedMethod === 'KHQR' ? 'bg-red-600 text-white shadow-lg shadow-red-900/50' : 'bg-neutral-800 text-neutral-400 hover:bg-neutral-700']">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><path d="M7 7h3v3H7z"/><path d="M14 7h3v3h-3z"/><path d="M7 14h3v3H7z"/><path d="M14 14v3"/></svg>
               <span class="font-medium text-lg">Bakong KHQR</span>
             </button>
           </div>
-
           <div class="mt-auto pt-8">
-            <div class="flex justify-between text-neutral-400 text-sm mb-2">
-              <span>Total Due</span>
-            </div>
-            <div class="text-3xl font-bold text-white mb-8">
-              ${{ total.toFixed(2) }}
-            </div>
-
-            <button
-              @click="closePaymentModal"
-              class="w-full py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white hover:border-neutral-500"
-            >
-              Cancel
-            </button>
+            <div class="flex justify-between text-neutral-400 text-sm mb-2"><span>Total Due</span></div>
+            <div class="text-3xl font-bold text-white mb-8">${{ total.toFixed(2) }}</div>
+            <button @click="closePaymentModal" class="w-full py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white hover:border-neutral-500">Cancel</button>
           </div>
         </div>
-
         <!-- Payment Content (Right) -->
-        <div
-          class="flex-1 p-8 flex flex-col items-center justify-center relative"
-        >
-          <!-- Cash Interface -->
-          <div
-            v-if="selectedMethod === 'CASH'"
-            class="w-full max-w-md bg-neutral-900/80 p-5 rounded-3xl border border-neutral-700 flex flex-col h-full overflow-hidden"
-          >
+        <div class="flex-1 p-8 flex flex-col items-center justify-center relative overflow-y-auto">
+          <div v-if="selectedMethod === 'CASH'" class="w-full max-w-md bg-neutral-900/80 p-5 rounded-3xl border border-neutral-700 flex flex-col h-full overflow-hidden">
             <div class="text-center mb-2 flex-shrink-0">
               <p class="text-neutral-400 text-xs mb-1">Total Due</p>
-              <h3 class="text-3xl font-black text-white tracking-tight">
-                ${{ total.toFixed(2) }}
-              </h3>
+              <h3 class="text-3xl font-black text-white tracking-tight">${{ total.toFixed(2) }}</h3>
             </div>
-
-            <!-- Cash Input Display -->
-            <div
-              class="bg-neutral-800 rounded-xl p-3 mb-3 border border-neutral-700 relative overflow-hidden flex-shrink-0"
-            >
-              <div class="flex justify-between items-end mb-1">
-                <span
-                  class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest"
-                  >Cash Received</span
-                >
-              </div>
-              <!-- Input field (readonly) -->
+            <div class="bg-neutral-800 rounded-xl p-3 mb-3 border border-neutral-700 relative overflow-hidden flex-shrink-0">
+              <div class="flex justify-between items-end mb-1"><span class="text-neutral-500 text-[10px] font-bold uppercase tracking-widest">Cash Received</span></div>
               <div class="flex items-center justify-between">
                 <span class="text-xl font-bold text-neutral-500">$</span>
-                <span
-                  :class="[
-                    'text-3xl font-mono font-bold tracking-tight',
-                    cashReceived ? 'text-white' : 'text-neutral-600',
-                  ]"
-                >
-                  {{ cashReceived ? cashReceived : "0.00" }}
-                </span>
+                <span :class="['text-3xl font-mono font-bold tracking-tight', cashReceived ? 'text-white' : 'text-neutral-600']">{{ cashReceived ? cashReceived : "0.00" }}</span>
               </div>
-              <!-- Quick add buttons -->
-              <div
-                class="flex gap-2 mt-2 pt-2 border-t border-neutral-700 overflow-x-auto scrollbar-hide"
-              >
-                <button
-                  @click="setCash(total)"
-                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
-                >
-                  Exact
-                </button>
-                <button
-                  @click="setCash(Math.ceil(total))"
-                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
-                >
-                  ${{ Math.ceil(total) }}
-                </button>
-                <button
-                  @click="setCash(10)"
-                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
-                >
-                  $10
-                </button>
-                <button
-                  @click="setCash(20)"
-                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
-                >
-                  $20
-                </button>
-                <button
-                  @click="setCash(50)"
-                  class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap"
-                >
-                  $50
-                </button>
+              <div class="flex gap-2 mt-2 pt-2 border-t border-neutral-700 overflow-x-auto scrollbar-hide">
+                <button @click="setCash(total)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">Exact</button>
+                <button @click="setCash(Math.ceil(total))" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">${{ Math.ceil(total) }}</button>
+                <button @click="setCash(10)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$10</button>
+                <button @click="setCash(20)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$20</button>
+                <button @click="setCash(50)" class="px-2 py-1.5 bg-neutral-700 hover:bg-neutral-600 rounded-lg text-[10px] text-white font-bold whitespace-nowrap">$50</button>
               </div>
             </div>
-
-            <!-- Change Display -->
-            <div
-              class="flex justify-between items-center px-4 py-3 bg-neutral-800 rounded-xl border border-neutral-700 mb-3 flex-shrink-0"
-            >
-              <span class="text-neutral-400 font-bold uppercase text-[10px]"
-                >Change Due</span
-              >
-              <span
-                :class="[
-                  'text-xl font-black font-mono',
-                  changeDue >= 0 ? 'text-success-400' : 'text-error-500',
-                ]"
-              >
-                {{
-                  changeDue >= 0
-                    ? "$" + changeDue.toFixed(2)
-                    : "-$" + Math.abs(changeDue).toFixed(2)
-                }}
-              </span>
+            <div class="flex justify-between items-center px-4 py-3 bg-neutral-800 rounded-xl border border-neutral-700 mb-3 flex-shrink-0">
+              <span class="text-neutral-400 font-bold uppercase text-[10px]">Change Due</span>
+              <span :class="['text-xl font-black font-mono', changeDue >= 0 ? 'text-success-400' : 'text-error-500']">{{ changeDue >= 0 ? "$" + changeDue.toFixed(2) : "-$" + Math.abs(changeDue).toFixed(2) }}</span>
             </div>
-
-            <!-- Keypad -->
             <div class="grid grid-cols-3 gap-2 flex-1 min-h-0">
-              <button
-                v-for="n in [1, 2, 3, 4, 5, 6, 7, 8, 9]"
-                :key="n"
-                @click="addCashDigit(n.toString())"
-                class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors shadow-sm flex items-center justify-center"
-              >
-                {{ n }}
-              </button>
-              <button
-                @click="addCashDigit('.')"
-                class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center"
-              >
-                .
-              </button>
-              <button
-                @click="addCashDigit('0')"
-                class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center"
-              >
-                0
-              </button>
-              <button
-                @click="clearCash"
-                class="h-full max-h-14 rounded-lg bg-error-500/10 hover:bg-error-500/20 text-error-500 hover:text-error-400 text-lg font-bold transition-colors flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-5 h-5"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"
-                  />
-                  <line x1="18" y1="9" x2="12" y2="15" />
-                  <line x1="12" y1="9" x2="18" y2="15" />
-                </svg>
+              <button v-for="n in [1,2,3,4,5,6,7,8,9]" :key="n" @click="addCashDigit(n.toString())" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors shadow-sm flex items-center justify-center">{{ n }}</button>
+              <button @click="addCashDigit('.')" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center">.</button>
+              <button @click="addCashDigit('0')" class="h-full max-h-14 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white text-xl font-bold transition-colors flex items-center justify-center">0</button>
+              <button @click="clearCash" class="h-full max-h-14 rounded-lg bg-error-500/10 hover:bg-error-500/20 text-error-500 hover:text-error-400 text-lg font-bold transition-colors flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><line x1="18" y1="9" x2="12" y2="15"/><line x1="12" y1="9" x2="18" y2="15"/></svg>
               </button>
             </div>
-
-            <button
-              @click="completeOrder"
-              :disabled="isProcessing || changeDue < 0"
-              class="w-full btn-primary py-3 rounded-xl mt-3 text-sm font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
-            >
-              {{
-                isProcessing
-                  ? "Processing..."
-                  : changeDue < 0
-                    ? "Insufficient Cash"
-                    : "Confirm Payment"
-              }}
-            </button>
+            <Button @click="completeOrder" :disabled="isProcessing || changeDue < 0" variant="default" class="w-full py-3 rounded-xl mt-3 text-sm font-bold uppercase tracking-wider disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0">{{ isProcessing ? "Processing..." : changeDue < 0 ? "Insufficient Cash" : "Confirm Payment" }}</Button>
           </div>
-
-          <!-- KHQR Interface -->
-          <div
-            v-if="selectedMethod === 'KHQR'"
-            class="text-center w-full h-full flex flex-col items-center justify-center p-4"
-          >
-            <div
-              v-if="!khqrData && isProcessing"
-              class="flex flex-col items-center"
-            >
-              <div
-                class="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mb-6"
-              ></div>
-              <p
-                class="text-neutral-400 font-bold animate-pulse uppercase tracking-widest text-xs"
-              >
-                Connecting to Bakong Gateway...
-              </p>
+          <div v-if="selectedMethod === 'KHQR'" class="text-center w-full h-full flex flex-col items-center justify-center p-4">
+            <div v-if="!khqrData && isProcessing" class="flex flex-col items-center">
+              <div class="w-16 h-16 border-4 border-red-500/30 border-t-red-500 rounded-full animate-spin mb-6"></div>
+              <p class="text-neutral-400 font-bold animate-pulse uppercase tracking-widest text-xs">Connecting to Bakong Gateway...</p>
             </div>
-
-            <div
-              v-else-if="khqrData"
-              class="flex flex-col items-center justify-between h-full w-full py-4"
-            >
-              <div class="flex-1 flex items-center justify-center w-full">
-                <PosKHQRDisplay
-                  :qr-value="khqrData.qr"
-                  :amount="total"
-                  merchant-name="Cafe POS System"
-                />
-              </div>
-
-              <div
-                class="mt-8 flex items-center gap-4 px-8 py-4 rounded-2xl bg-neutral-900 border border-neutral-700 shadow-inner"
-              >
-                <div
-                  v-if="paymentStatus === 'PENDING'"
-                  class="flex items-center gap-4"
-                >
-                  <span class="relative flex h-4 w-4">
-                    <span
-                      class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"
-                    ></span>
-                    <span
-                      class="relative inline-flex rounded-full h-4 w-4 bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"
-                    ></span>
-                  </span>
-                  <div class="text-left">
-                    <span
-                      class="text-white font-black uppercase text-[10px] block tracking-widest"
-                      >Payment Status</span
-                    >
-                    <span class="text-yellow-500 font-bold text-sm"
-                      >Waiting for Scan...</span
-                    >
-                  </div>
+            <div v-else-if="khqrData" class="flex flex-col items-center justify-between h-full w-full py-4">
+              <div class="flex-1 flex items-center justify-center w-full"><PosKHQRDisplay :qr-value="khqrData.qr" :amount="total" merchant-name="Cafe POS System" /></div>
+              <div class="mt-8 flex items-center gap-4 px-8 py-4 rounded-2xl bg-neutral-900 border border-neutral-700 shadow-inner">
+                <div v-if="paymentStatus === 'PENDING'" class="flex items-center gap-4">
+                  <span class="relative flex h-4 w-4"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span><span class="relative inline-flex rounded-full h-4 w-4 bg-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.5)]"></span></span>
+                  <div class="text-left"><span class="text-white font-black uppercase text-[10px] block tracking-widest">Payment Status</span><span class="text-yellow-500 font-bold text-sm">Waiting for Scan...</span></div>
                 </div>
-                <div
-                  v-else-if="paymentStatus === 'COMPLETED'"
-                  class="flex items-center gap-4 text-left"
-                >
-                  <div
-                    class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.5)]"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-5 h-5 text-white"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="3"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                  <div>
-                    <span
-                      class="text-white font-black uppercase text-[10px] block tracking-widest"
-                      >Payment Status</span
-                    >
-                    <span class="text-green-500 font-bold text-sm uppercase"
-                      >Payment Received!</span
-                    >
-                  </div>
+                <div v-else-if="paymentStatus === 'COMPLETED'" class="flex items-center gap-4 text-left">
+                  <div class="w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-[0_0_15px_rgba(34,197,94,0.5)]"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+                  <div><span class="text-white font-black uppercase text-[10px] block tracking-widest">Payment Status</span><span class="text-green-500 font-bold text-sm uppercase">Payment Received!</span></div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
 
-    <!-- Receipt Modal -->
-    <div
-      v-if="showReceiptModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-xl max-w-md w-full max-h-[90vh] overflow-hidden border border-neutral-700"
-      >
-        <div
-          class="p-4 border-b border-neutral-700 flex items-center justify-between"
-        >
-          <h3 class="text-lg font-semibold text-white flex items-center gap-2">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 text-green-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-              <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
+    <Dialog v-model:open="showReceiptModal">
+      <DialogContent class="sm:max-w-md bg-neutral-800 border-neutral-700" :show-close-button="false">
+        <DialogHeader>
+          <DialogTitle class="text-white flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             Order Complete!
-          </h3>
-          <button
-            @click="closeReceiptModal"
-            class="text-neutral-400 hover:text-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="p-4 overflow-y-auto max-h-[60vh]" id="receipt-print-area">
-          <div
-            class="receipt bg-white text-neutral-900 p-6 rounded-xl font-mono text-sm"
-          >
-            <!-- Header -->
+          </DialogTitle>
+          <DialogDescription class="sr-only">Receipt for completed order</DialogDescription>
+        </DialogHeader>
+        <div class="overflow-y-auto max-h-[60vh]" id="receipt-print-area">
+          <div class="receipt bg-white text-neutral-900 p-6 rounded-xl font-mono text-sm">
             <div class="text-center mb-4">
               <div class="text-4xl mb-2">☕</div>
-              <h4 class="font-bold text-lg">
-                {{ receiptData?.branchName || "Cafe POS" }}
-              </h4>
-              <p
-                v-if="receiptData?.branchPhone"
-                class="text-xs text-neutral-500"
-              >
-                {{ receiptData.branchPhone }}
-              </p>
-              <p
-                v-if="receiptData?.branchAddress"
-                class="text-xs text-neutral-500"
-              >
-                {{ receiptData.branchAddress }}
-              </p>
+              <h4 class="font-bold text-lg">{{ receiptData?.branchName || "Cafe POS" }}</h4>
+              <p v-if="receiptData?.branchPhone" class="text-xs text-neutral-500">{{ receiptData.branchPhone }}</p>
+              <p v-if="receiptData?.branchAddress" class="text-xs text-neutral-500">{{ receiptData.branchAddress }}</p>
             </div>
-
             <div class="border-t border-dashed border-neutral-300 my-3"></div>
-
-            <!-- Order Info -->
             <div class="space-y-1 text-xs">
-              <div class="flex justify-between">
-                <span>Order #:</span
-                ><span class="font-bold">{{ receiptData?.orderNo }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Date:</span><span>{{ receiptData?.orderDate }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Time:</span><span>{{ receiptData?.orderTime }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Type:</span><span>{{ receiptData?.orderType }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Cashier:</span><span>{{ receiptData?.cashierName }}</span>
-              </div>
+              <div class="flex justify-between"><span>Order #:</span><span class="font-bold">{{ receiptData?.orderNo }}</span></div>
+              <div class="flex justify-between"><span>Date:</span><span>{{ receiptData?.orderDate }}</span></div>
+              <div class="flex justify-between"><span>Time:</span><span>{{ receiptData?.orderTime }}</span></div>
+              <div class="flex justify-between"><span>Type:</span><span>{{ receiptData?.orderType }}</span></div>
+              <div class="flex justify-between"><span>Cashier:</span><span>{{ receiptData?.cashierName }}</span></div>
             </div>
-
             <div class="border-t border-solid border-neutral-400 my-3"></div>
-
-            <!-- Items -->
             <div class="space-y-2">
-              <div
-                v-for="(item, idx) in receiptData?.items"
-                :key="idx"
-                class="text-xs"
-              >
-                <div class="flex justify-between">
-                  <span
-                    >{{ item.name }}
-                    <span v-if="item.variant">({{ item.variant }})</span></span
-                  >
-                  <span>${{ item.lineTotal?.toFixed(2) }}</span>
-                </div>
-                <div class="text-neutral-500 pl-2">
-                  {{ item.qty }} x ${{ item.unitPrice?.toFixed(2) }}
-                </div>
+              <div v-for="(item, idx) in receiptData?.items" :key="idx" class="text-xs">
+                <div class="flex justify-between"><span>{{ item.name }}<span v-if="item.variant">({{ item.variant }})</span></span><span>${{ item.lineTotal?.toFixed(2) }}</span></div>
+                <div class="text-neutral-500 pl-2">{{ item.qty }} x ${{ item.unitPrice?.toFixed(2) }}</div>
               </div>
             </div>
-
             <div class="border-t border-solid border-neutral-400 my-3"></div>
-
-            <!-- Totals -->
             <div class="space-y-1 text-xs">
-              <div class="flex justify-between">
-                <span>Subtotal:</span
-                ><span>${{ receiptData?.subTotal?.toFixed(2) }}</span>
-              </div>
-              <div
-                v-if="receiptData?.discountAmount > 0"
-                class="flex justify-between text-red-600"
-              >
-                <span>Discount:</span
-                ><span>-${{ receiptData?.discountAmount?.toFixed(2) }}</span>
-              </div>
-              <div
-                v-if="receiptData?.taxAmount > 0"
-                class="flex justify-between"
-              >
-                <span>Tax:</span
-                ><span>${{ receiptData?.taxAmount?.toFixed(2) }}</span>
-              </div>
+              <div class="flex justify-between"><span>Subtotal:</span><span>${{ receiptData?.subTotal?.toFixed(2) }}</span></div>
+              <div v-if="receiptData?.discountAmount > 0" class="flex justify-between text-red-600"><span>Discount:</span><span>-${{ receiptData?.discountAmount?.toFixed(2) }}</span></div>
+              <div v-if="receiptData?.taxAmount > 0" class="flex justify-between"><span>Tax:</span><span>${{ receiptData?.taxAmount?.toFixed(2) }}</span></div>
               <div class="border-t border-dashed border-neutral-300 my-2"></div>
-              <div class="flex justify-between font-bold text-base">
-                <span>TOTAL:</span
-                ><span>${{ receiptData?.totalAmount?.toFixed(2) }}</span>
-              </div>
+              <div class="flex justify-between font-bold text-base"><span>TOTAL:</span><span>${{ receiptData?.totalAmount?.toFixed(2) }}</span></div>
             </div>
-
             <div class="border-t border-dashed border-neutral-300 my-3"></div>
-
-            <!-- Payment -->
             <div class="space-y-1 text-xs">
-              <div class="flex justify-between">
-                <span>Payment:</span
-                ><span class="font-bold">{{ receiptData?.paymentMethod }}</span>
-              </div>
-              <div class="flex justify-between">
-                <span>Paid:</span
-                ><span>${{ receiptData?.amountPaid?.toFixed(2) }}</span>
-              </div>
-              <div
-                v-if="receiptData?.changeAmount > 0"
-                class="flex justify-between text-green-600"
-              >
-                <span>Change:</span
-                ><span>${{ receiptData?.changeAmount?.toFixed(2) }}</span>
-              </div>
+              <div class="flex justify-between"><span>Payment:</span><span class="font-bold">{{ receiptData?.paymentMethod }}</span></div>
+              <div class="flex justify-between"><span>Paid:</span><span>${{ receiptData?.amountPaid?.toFixed(2) }}</span></div>
+              <div v-if="receiptData?.changeAmount > 0" class="flex justify-between text-green-600"><span>Change:</span><span>${{ receiptData?.changeAmount?.toFixed(2) }}</span></div>
             </div>
-
             <div class="border-t border-dashed border-neutral-300 my-3"></div>
-
-            <!-- Footer -->
-            <div class="text-center text-xs">
-              <p class="font-bold">{{ receiptData?.footerMessage }}</p>
-              <p class="text-neutral-400 mt-2">Powered by Cafe POS</p>
+            <div v-if="(receiptData?.pointsRedeemed || 0) > 0 || (receiptData?.pointsEarned || 0) > 0" class="space-y-1 text-xs">
+              <div v-if="(receiptData?.pointsRedeemed || 0) > 0" class="flex justify-between"><span>Points Redeemed:</span><span class="font-bold">{{ receiptData?.pointsRedeemed }} pts</span></div>
+              <div v-if="(receiptData?.pointsEarned || 0) > 0" class="flex justify-between"><span>Points Earned:</span><span class="font-bold">{{ receiptData?.pointsEarned }} pts</span></div>
+              <div class="border-t border-dashed border-neutral-300 my-3"></div>
             </div>
+            <div class="text-center text-xs"><p class="font-bold">{{ receiptData?.footerMessage }}</p><p class="text-neutral-400 mt-2">Powered by Cafe POS</p></div>
           </div>
         </div>
-
-        <div class="p-4 border-t border-neutral-700 flex gap-3">
-          <button
-            @click="printReceipt"
-            class="flex-1 btn-primary flex items-center justify-center gap-2"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <polyline points="6 9 6 2 18 2 18 9" />
-              <path
-                d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"
-              />
-              <rect x="6" y="14" width="12" height="8" />
-            </svg>
+        <DialogFooter>
+          <Button @click="printReceipt" variant="default" class="flex-1 flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
             Print Receipt
-          </button>
-          <button @click="closeReceiptModal" class="flex-1 btn-secondary">
-            New Order
-          </button>
+          </Button>
+          <Button @click="closeReceiptModal" variant="secondary" class="flex-1">New Order</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    <Dialog v-model:open="showHoldOrderModal">
+      <DialogContent class="sm:max-w-sm bg-neutral-800 border-neutral-700">
+        <DialogHeader>
+          <DialogTitle class="text-white">Hold Order</DialogTitle>
+          <DialogDescription class="sr-only">Add a note to hold the order</DialogDescription>
+        </DialogHeader>
+        <div class="space-y-4">
+          <label class="block text-sm font-medium text-neutral-400">Order Note</label>
+          <input v-model="holdOrderNote" type="text" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary-500" placeholder="e.g. Table 5" @keyup.enter="confirmHoldOrder" autofocus />
         </div>
-      </div>
-    </div>
-    <!-- Hold Order Modal -->
-    <div
-      v-if="showHoldOrderModal"
-      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 overflow-hidden animate-in zoom-in duration-200"
-      >
-        <div class="p-6 border-b border-neutral-700">
-          <h3 class="text-xl font-bold text-white">Hold Order</h3>
-        </div>
-        <div class="p-6 space-y-4">
-          <label class="block text-sm font-medium text-neutral-400"
-            >Order Note</label
-          >
-          <input
-            v-model="holdOrderNote"
-            type="text"
-            class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-primary-500"
-            placeholder="e.g. Table 5"
-            @keyup.enter="confirmHoldOrder"
-            autofocus
-          />
-        </div>
-        <div class="p-6 bg-neutral-900/50 flex justify-end gap-3">
-          <button
-            @click="showHoldOrderModal = false"
-            class="px-4 py-2 rounded-xl text-neutral-400 hover:text-white hover:bg-neutral-800 transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            @click="confirmHoldOrder"
-            class="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-bold transition-colors"
-          >
-            Hold Order
-          </button>
-        </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="secondary" class="border-neutral-600 text-neutral-400" @click="showHoldOrderModal = false">Cancel</Button>
+          <Button variant="default" @click="confirmHoldOrder">Hold Order</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-    <!-- Customer Selection Modal -->
-    <div
-      v-if="showCustomerModal"
-      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-lg border border-neutral-700 flex flex-col overflow-hidden animate-in zoom-in duration-200"
-      >
-        <div
-          class="p-6 border-b border-neutral-700 flex justify-between items-center"
-        >
-          <h3 class="text-xl font-bold text-white">Select Customer</h3>
-          <button
-            @click="toggleCreateCustomer"
-            class="ml-4 text-xs font-bold px-3 py-1.5 bg-neutral-700 border border-neutral-600 text-white rounded-lg hover:bg-primary-600 hover:border-primary-500 transition-colors flex items-center gap-1"
-          >
-            <span v-if="!isCreatingCustomer">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-3 h-3 inline mr-1"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="3"
-              >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              New Customer
-            </span>
-            <span v-else>Cancel</span>
-          </button>
-          <button
-            @click="showCustomerModal = false"
-            class="text-neutral-400 hover:text-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="p-6 space-y-6">
-          <!-- Create Customer Form -->
-          <div
-            v-if="isCreatingCustomer"
-            class="space-y-4 bg-neutral-900/50 p-4 rounded-xl border border-neutral-700 animate-in fade-in slide-in-from-top-2 duration-200"
-          >
+    <Dialog v-model:open="showCustomerModal">
+      <DialogContent class="sm:max-w-lg bg-neutral-800 border-neutral-700">
+        <DialogHeader>
+          <div class="flex items-center justify-between">
+            <DialogTitle class="text-white">Select Customer</DialogTitle>
+            <button @click="toggleCreateCustomer" class="text-xs font-bold px-3 py-1.5 bg-neutral-700 border border-neutral-600 text-white rounded-lg hover:bg-primary-600 hover:border-primary-500 transition-colors flex items-center gap-1">
+              <span v-if="!isCreatingCustomer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3 inline mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                New Customer
+              </span>
+              <span v-else>Cancel</span>
+            </button>
+          </div>
+        </DialogHeader>
+        <div class="space-y-6">
+          <div v-if="isCreatingCustomer" class="space-y-4 bg-neutral-900/50 p-4 rounded-xl border border-neutral-700">
             <div>
-              <label class="block text-xs font-medium text-neutral-400 mb-1"
-                >Customer Name *</label
-              >
-              <input
-                v-model="newCustomer.name"
-                type="text"
-                class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
-                placeholder="John Doe"
-              />
+              <label class="block text-xs font-medium text-neutral-400 mb-1">Customer Name *</label>
+              <input v-model="newCustomer.name" type="text" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="John Doe" />
             </div>
             <div>
-              <label class="block text-xs font-medium text-neutral-400 mb-1"
-                >Phone (Optional)</label
-              >
-              <input
-                v-model="newCustomer.phone"
-                type="text"
-                class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
-                placeholder="012 345 678"
-              />
+              <label class="block text-xs font-medium text-neutral-400 mb-1">Phone (Optional)</label>
+              <input v-model="newCustomer.phone" type="text" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" placeholder="012 345 678" />
             </div>
             <div class="grid grid-cols-2 gap-3">
               <div>
-                <label class="block text-xs font-medium text-neutral-400 mb-1"
-                  >Gender (Optional)</label
-                >
-                <select
-                  v-model="newCustomer.gender"
-                  class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
-                >
+                <label class="block text-xs font-medium text-neutral-400 mb-1">Gender (Optional)</label>
+                <select v-model="newCustomer.gender" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm">
                   <option value="MALE">Male</option>
                   <option value="FEMALE">Female</option>
                   <option value="OTHER">Other</option>
                 </select>
               </div>
               <div>
-                <label class="block text-xs font-medium text-neutral-400 mb-1"
-                  >Date of Birth (Optional)</label
-                >
-                <input
-                  v-model="newCustomer.dob"
-                  type="date"
-                  class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm"
-                />
+                <label class="block text-xs font-medium text-neutral-400 mb-1">Date of Birth (Optional)</label>
+                <input v-model="newCustomer.dob" type="date" class="w-full bg-neutral-800 border border-neutral-700 rounded-lg px-3 py-2 text-white focus:ring-2 focus:ring-primary-500 text-sm" />
               </div>
             </div>
-            <button
-              @click="createCustomer"
-              class="w-full py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-bold text-sm transition-colors shadow-lg shadow-primary-900/20"
-            >
-              Create & Select Customer
-            </button>
+            <button @click="createCustomer" class="w-full py-2 bg-primary-600 hover:bg-primary-500 text-white rounded-lg font-bold text-sm transition-colors shadow-lg shadow-primary-900/20">Create & Select Customer</button>
           </div>
-
           <div v-else class="relative">
-            <input
-              v-model="customerSearch"
-              @input="searchCustomers"
-              type="text"
-              placeholder="Search by name or phone..."
-              class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 pl-10 text-white focus:ring-2 focus:ring-primary-500"
-            />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
+            <input v-model="customerSearch" @input="searchCustomers" type="text" placeholder="Search by name or phone..." class="w-full bg-neutral-900 border border-neutral-700 rounded-xl px-4 py-3 pl-10 text-white focus:ring-2 focus:ring-primary-500" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
           </div>
-
           <div class="max-h-64 overflow-y-auto space-y-2 pr-2 scrollbar-thin">
-            <!-- Walk-in button only if not searching or empty search -->
-            <button
-              v-if="!customerSearch"
-              @click="selectCustomerFromModal(null)"
-              class="w-full p-3 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 text-left transition-colors flex items-center justify-between mb-2"
-            >
+            <button v-if="!customerSearch" @click="selectCustomerFromModal(null)" class="w-full p-3 rounded-xl bg-neutral-700/50 hover:bg-neutral-700 text-left transition-colors flex items-center justify-between mb-2">
               <span class="text-white font-medium">Walk-in Customer</span>
-              <span class="text-[10px] text-neutral-500 uppercase font-black"
-                >Default</span
-              >
+              <span class="text-[10px] text-neutral-500 uppercase font-black">Default</span>
             </button>
-
-            <!-- Recent Customers Header -->
             <div v-if="!customerSearch && recentCustomers.length > 0">
-              <p
-                class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2"
-              >
-                Recent Customers
-              </p>
-              <button
-                v-for="res in recentCustomers"
-                :key="'recent-' + res.customerId"
-                @click="selectCustomerFromModal(res)"
-                class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group mb-2 border border-transparent hover:border-neutral-600"
-              >
+              <p class="text-[10px] font-bold text-neutral-500 uppercase tracking-widest mb-2">Recent Customers</p>
+              <button v-for="res in recentCustomers" :key="'recent-' + res.customerId" @click="selectCustomerFromModal(res)" class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group mb-2 border border-transparent hover:border-neutral-600">
                 <div class="flex items-center gap-3">
-                  <div
-                    class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white"
-                  >
-                    {{ res.fullName.charAt(0).toUpperCase() }}
-                  </div>
-                  <div>
-                    <div
-                      class="text-white font-bold group-hover:text-primary-400"
-                    >
-                      {{ res.fullName }}
-                    </div>
-                    <div class="text-xs text-neutral-400">
-                      {{ res.phone || "No phone" }}
-                    </div>
-                  </div>
+                  <div class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white">{{ res.fullName.charAt(0).toUpperCase() }}</div>
+                  <div><div class="text-white font-bold group-hover:text-primary-400">{{ res.fullName }}</div><div class="text-xs text-neutral-400">{{ res.phone || "No phone" }}</div></div>
                 </div>
-                <div class="text-right">
-                  <div class="text-xs font-black text-warning-500">
-                    {{ res.loyaltyPoints || 0 }} pts
-                  </div>
-                  <div class="text-[10px] text-neutral-500">
-                    {{ res.membershipLevel }}
-                  </div>
-                </div>
+                <div class="text-right"><div class="text-xs font-black text-warning-500">{{ res.loyaltyPoints || 0 }} pts</div><div class="text-[10px] text-neutral-500">{{ res.membershipLevel }}</div></div>
               </button>
             </div>
-
-            <!-- Search Results -->
-            <div v-if="selecting" class="py-12 text-center text-neutral-500">
-              Searching...
-            </div>
-            <div
-              v-else-if="
-                customerSearch.length >= 2 && searchResults.length === 0
-              "
-              class="py-12 text-center text-neutral-500 italic"
-            >
-              No customers found
-            </div>
-
-            <button
-              v-for="res in searchResults"
-              :key="'search-' + res.customerId"
-              @click="selectCustomerFromModal(res)"
-              class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group"
-            >
+            <div v-if="selecting" class="py-12 text-center text-neutral-500">Searching...</div>
+            <div v-else-if="customerSearch.length >= 2 && searchResults.length === 0" class="py-12 text-center text-neutral-500 italic">No customers found</div>
+            <button v-for="res in searchResults" :key="'search-' + res.customerId" @click="selectCustomerFromModal(res)" class="w-full p-3 rounded-xl hover:bg-neutral-700 text-left transition-colors flex items-center justify-between group">
               <div class="flex items-center gap-3">
-                <div
-                  class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white"
-                >
-                  {{ res.fullName.charAt(0).toUpperCase() }}
-                </div>
-                <div>
-                  <div
-                    class="text-white font-bold group-hover:text-primary-400"
-                  >
-                    {{ res.fullName }}
-                  </div>
-                  <div class="text-xs text-neutral-400">
-                    {{ res.phone || "No phone" }}
-                  </div>
-                </div>
+                <div class="w-8 h-8 rounded-full bg-neutral-600 flex items-center justify-center text-xs font-bold text-white">{{ res.fullName.charAt(0).toUpperCase() }}</div>
+                <div><div class="text-white font-bold group-hover:text-primary-400">{{ res.fullName }}</div><div class="text-xs text-neutral-400">{{ res.phone || "No phone" }}</div></div>
               </div>
-              <div class="text-right">
-                <div class="text-xs font-black text-warning-500">
-                  {{ res.loyaltyPoints || 0 }} pts
-                </div>
-                <div class="text-[10px] text-neutral-500">
-                  {{ res.membershipLevel }}
-                </div>
-              </div>
+              <div class="text-right"><div class="text-xs font-black text-warning-500">{{ res.loyaltyPoints || 0 }} pts</div><div class="text-[10px] text-neutral-500">{{ res.membershipLevel }}</div></div>
             </button>
           </div>
         </div>
+        <DialogFooter>
+          <Button variant="secondary" class="border-neutral-600 text-neutral-400" @click="showCustomerModal = false">Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-        <div class="p-6 bg-neutral-900/50 flex justify-end">
-          <button
-            @click="showCustomerModal = false"
-            class="text-sm font-bold text-neutral-400 hover:text-white uppercase tracking-widest"
-          >
-            Close
-          </button>
+    <Dialog v-model:open="showDiscountModal">
+      <DialogContent class="sm:max-w-sm bg-neutral-800 border-neutral-700">
+        <DialogHeader>
+          <DialogTitle class="text-white">Apply Discount</DialogTitle>
+          <DialogDescription class="text-neutral-400 text-sm">Enter a fixed discount amount.</DialogDescription>
+        </DialogHeader>
+        <div class="relative mb-2">
+          <span class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold">$</span>
+          <input v-model="manualDiscountInput" type="number" min="0" step="0.01" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl py-4 pl-8 pr-4 text-white text-xl font-bold focus:outline-none focus:border-primary-500 transition-colors" placeholder="0.00" @keyup.enter="applyDiscount" />
         </div>
-      </div>
-    </div>
-
-    <!-- Discount Modal -->
-    <div
-      v-if="showDiscountModal"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 p-6"
-      >
-        <h3 class="text-xl font-bold text-white mb-4">Apply Discount</h3>
-        <p class="text-neutral-400 text-sm mb-4">
-          Enter a fixed discount amount.
-        </p>
-
-        <div class="relative mb-6">
-          <span
-            class="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 font-bold"
-            >$</span
-          >
-          <input
-            v-model="manualDiscountInput"
-            type="number"
-            min="0"
-            step="0.01"
-            class="w-full bg-neutral-900 border border-neutral-700 rounded-xl py-4 pl-8 pr-4 text-white text-xl font-bold focus:outline-none focus:border-primary-500 transition-colors"
-            placeholder="0.00"
-            @keyup.enter="applyDiscount"
-          />
-        </div>
-
-        <div class="flex gap-3">
-          <button
-            @click="showDiscountModal = false"
-            class="flex-1 py-3 rounded-xl border border-neutral-600 text-neutral-400 hover:text-white hover:border-neutral-500 font-bold"
-          >
-            Cancel
-          </button>
-          <button
-            @click="applyDiscount"
-            class="flex-1 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-500 shadow-lg shadow-primary-900/20"
-          >
-            Apply
-          </button>
-        </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="secondary" class="border-neutral-600 text-neutral-400" @click="showDiscountModal = false">Cancel</Button>
+          <Button variant="default" @click="applyDiscount">Apply</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
     <!-- Shift Modal -->
     <!-- Shift Modal -->
     <PosShiftModal
@@ -1681,115 +1003,32 @@
       @success="onShiftSuccess"
     />
 
-    <!-- Drawer Action Modal -->
-    <div
-      v-if="showDrawerModal"
-      class="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-xl w-full max-w-sm border border-neutral-700 flex flex-col"
-      >
-        <div
-          class="p-4 border-b border-neutral-700 flex justify-between items-center"
-        >
-          <h3 class="text-white font-black uppercase tracking-tighter text-sm">
-            Cash Management
-          </h3>
-          <button
-            @click="showDrawerModal = false"
-            class="text-neutral-400 hover:text-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path d="M18 6L6 18M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-        <div class="p-6 space-y-5">
+    <Dialog v-model:open="showDrawerModal">
+      <DialogContent class="sm:max-w-sm bg-neutral-800 border-neutral-700">
+        <DialogHeader>
+          <DialogTitle class="text-white font-black uppercase tracking-tighter text-sm">Cash Management</DialogTitle>
+        </DialogHeader>
+        <div class="space-y-5">
           <div>
-            <label
-              class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block"
-              >Action Type</label
-            >
+            <label class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block">Action Type</label>
             <div class="grid grid-cols-3 gap-2">
-              <button
-                @click="drawerForm.type = 'PAY_OUT'"
-                :class="[
-                  'py-2 rounded-lg text-xs font-bold border transition-all',
-                  drawerForm.type === 'PAY_OUT'
-                    ? 'bg-error-500/20 text-error-400 border-error-500/50'
-                    : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500',
-                ]"
-              >
-                PAY OUT
-              </button>
-              <button
-                @click="drawerForm.type = 'CASH_DROP'"
-                :class="[
-                  'py-2 rounded-lg text-xs font-bold border transition-all',
-                  drawerForm.type === 'CASH_DROP'
-                    ? 'bg-primary-500/20 text-primary-400 border-primary-500/50'
-                    : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500',
-                ]"
-              >
-                DROP
-              </button>
-              <button
-                @click="drawerForm.type = 'NO_SALE_OPEN'"
-                :class="[
-                  'py-2 rounded-lg text-xs font-bold border transition-all',
-                  drawerForm.type === 'NO_SALE_OPEN'
-                    ? 'bg-neutral-700 text-white border-neutral-600'
-                    : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500',
-                ]"
-              >
-                NO SALE
-              </button>
+              <button @click="drawerForm.type = 'PAY_OUT'" :class="['py-2 rounded-lg text-xs font-bold border transition-all', drawerForm.type === 'PAY_OUT' ? 'bg-error-500/20 text-error-400 border-error-500/50' : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500']">PAY OUT</button>
+              <button @click="drawerForm.type = 'CASH_DROP'" :class="['py-2 rounded-lg text-xs font-bold border transition-all', drawerForm.type === 'CASH_DROP' ? 'bg-primary-500/20 text-primary-400 border-primary-500/50' : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500']">DROP</button>
+              <button @click="drawerForm.type = 'NO_SALE_OPEN'" :class="['py-2 rounded-lg text-xs font-bold border transition-all', drawerForm.type === 'NO_SALE_OPEN' ? 'bg-neutral-700 text-white border-neutral-600' : 'bg-neutral-900 text-neutral-500 border-neutral-700 hover:border-neutral-500']">NO SALE</button>
             </div>
           </div>
           <div v-if="drawerForm.type !== 'NO_SALE_OPEN'">
-            <label
-              class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block"
-              >Amount</label
-            >
-            <input
-              v-model.number="drawerForm.amount"
-              type="number"
-              step="0.01"
-              class="w-full bg-neutral-900 border-neutral-700 rounded-lg text-white font-bold p-3 focus:ring-primary-500"
-              placeholder="0.00"
-            />
+            <label class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block">Amount</label>
+            <input v-model.number="drawerForm.amount" type="number" step="0.01" class="w-full bg-neutral-900 border-neutral-700 rounded-lg text-white font-bold p-3 focus:ring-primary-500" placeholder="0.00" />
           </div>
           <div>
-            <label
-              class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block"
-              >Reason</label
-            >
-            <textarea
-              v-model="drawerForm.reason"
-              rows="2"
-              class="w-full bg-neutral-900 border-neutral-700 rounded-lg text-white text-sm p-3 focus:ring-primary-500"
-              placeholder="Required for audit..."
-            ></textarea>
+            <label class="text-[10px] text-neutral-500 font-black uppercase tracking-widest mb-2 block">Reason</label>
+            <textarea v-model="drawerForm.reason" rows="2" class="w-full bg-neutral-900 border-neutral-700 rounded-lg text-white text-sm p-3 focus:ring-primary-500" placeholder="Required for audit..."></textarea>
           </div>
-          <button
-            @click="submitDrawerAction"
-            :disabled="
-              !drawerForm.reason ||
-              (drawerForm.type !== 'NO_SALE_OPEN' && !drawerForm.amount)
-            "
-            class="w-full py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-xl font-bold uppercase tracking-widest disabled:opacity-50 transition-colors"
-          >
-            Record Action
-          </button>
+          <Button @click="submitDrawerAction" :disabled="!drawerForm.reason || (drawerForm.type !== 'NO_SALE_OPEN' && !drawerForm.amount)" variant="default" class="w-full">Record Action</Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   </div>
 </template>
 
@@ -1803,6 +1042,7 @@ const {
   heldOrders,
   customer,
   pointsDiscount,
+  pointsRedeemed,
   manualDiscount,
   updateQty,
   subtotal,
@@ -1975,7 +1215,6 @@ const applyPoints = (points: number) => {
   const maxPoints = customer.value.points;
   const toRedeem = Math.min(points, maxPoints);
   redeemPoints(toRedeem);
-  toast.success(`Redeemed ${toRedeem} points!`);
 };
 
 // --- Customer Creation Logic ---
@@ -2284,6 +1523,7 @@ const generateKHQR = async () => {
       orderType: "DINE_IN",
       status: "PENDING",
       discountAmount: pointsDiscount.value,
+      pointsRedeemed: pointsRedeemed.value,
       items: cartItems.value.map((item) => ({
         menuItemId: item.menuItemId,
         qty: item.qty,
@@ -2355,7 +1595,7 @@ const completeOrder = async () => {
         note: item.notes || "",
         addOnIds: item.addOns?.map((a) => a.addonId) || [],
       })),
-      pointsRedeemed: 0,
+      pointsRedeemed: pointsRedeemed.value,
       paymentMethod: selectedMethod.value,
       receivedAmount: paidAmount, // Send actual cash received
       paymentReference:

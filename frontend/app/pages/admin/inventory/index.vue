@@ -1,7 +1,13 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6 relative">
-      <UiBreadcrumb :items="[{ label: 'Inventory' }]" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Inventory</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div class="flex items-center justify-between">
@@ -14,175 +20,69 @@
           </p>
         </div>
         <div class="flex items-center gap-3">
-          <div class="flex bg-neutral-100 dark:bg-neutral-800 p-1 rounded-xl">
-            <button
-              @click="activeTab = 'items'"
-              :class="[
-                'px-4 py-1.5 rounded-lg text-xs font-bold transition-all',
-                activeTab === 'items'
-                  ? 'bg-white dark:bg-neutral-700 text-primary-600 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-700',
-              ]"
-            >
-              Stock Items
-            </button>
-            <button
-              @click="activeTab = 'adjustments'"
-              :class="[
-                'px-4 py-1.5 rounded-lg text-xs font-bold transition-all',
-                activeTab === 'adjustments'
-                  ? 'bg-white dark:bg-neutral-700 text-primary-600 shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-700',
-              ]"
-            >
-              Audit History
-            </button>
-          </div>
-          <button
-            @click="openTransferModal"
-            class="bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 hover:bg-amber-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="m16 3 4 4-4 4" />
-              <path d="M20 7H9a4 4 0 1 0 0 8h1" />
-              <path d="m8 21-4-4 4-4" />
-              <path d="M4 17h11a4 4 0 1 0 0-8h-1" />
-            </svg>
+          <Tabs v-model="activeTab">
+            <TabList>
+              <TabTrigger value="items">Stock Items</TabTrigger>
+              <TabTrigger value="adjustments">Audit History</TabTrigger>
+            </TabList>
+          </Tabs>
+
+          <Button variant="outline" @click="openTransferModal">
+            <ArrowLeftRightIcon class="w-4 h-4" />
             Transfer
-          </button>
+          </Button>
 
           <div class="h-8 w-px bg-neutral-200 dark:bg-neutral-800 mx-1"></div>
 
-          <!-- Export/Import Actions -->
           <div class="flex items-center gap-2">
-            <button
-              @click="downloadIngredients('excel')"
-              class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl text-neutral-500 transition-colors"
-              title="Export as Excel"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-            </button>
-            <button
-              @click="triggerFileInput"
-              class="p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-xl text-neutral-500 transition-colors"
-              title="Bulk Import Stock"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="17 8 12 3 7 8" />
-                <line x1="12" y1="3" x2="12" y2="15" />
-              </svg>
-            </button>
-            <input
-              type="file"
-              ref="fileInput"
-              class="hidden"
-              accept=".xlsx,.csv"
-              @change="onFileChange"
-            />
+            <Button variant="ghost" size="icon" @click="downloadIngredients('excel')" title="Export as Excel">
+              <DownloadIcon class="w-5 h-5" />
+            </Button>
+            <Button variant="ghost" size="icon" @click="triggerFileInput" title="Bulk Import Stock">
+              <UploadIcon class="w-5 h-5" />
+            </Button>
+            <input type="file" ref="fileInput" class="hidden" accept=".xlsx,.csv" @change="onFileChange" />
           </div>
 
-          <button
-            @click="openCreateModal"
-            class="bg-primary-600 hover:bg-primary-700 text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors flex items-center gap-2 shadow-lg shadow-primary-500/20"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M5 12h14" />
-              <path d="M12 5v14" />
-            </svg>
+          <Button @click="openCreateModal">
+            <PlusIcon class="w-4 h-4" />
             Add Ingredient
-          </button>
+          </Button>
         </div>
       </div>
 
-      <!-- Table Section -->
-      <div v-if="activeTab === 'items'" class="space-y-6">
+      <TabsContent value="items" class="space-y-6">
         <!-- Filters -->
-        <div
-          class="flex items-center gap-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800"
-        >
+        <div class="flex items-center gap-4 bg-white dark:bg-neutral-900 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800">
           <div class="relative flex-1 max-w-md">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
-            <input
-              v-model="searchQuery"
-              type="text"
-              placeholder="Search ingredients..."
-              class="w-full pl-10 pr-4 py-2 bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary-500 placeholder-neutral-500"
-            />
+            <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Input v-model="searchQuery" placeholder="Search ingredients..." class="pl-10" />
           </div>
           <div class="flex items-center gap-2">
-            <label class="text-[10px] font-black uppercase text-neutral-400"
-              >View Branch:</label
-            >
-            <select
-              v-model="selectedBranchId"
-              class="bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg text-sm px-4 py-2 focus:ring-2 focus:ring-primary-500 min-w-[150px]"
-            >
-              <option :value="null">Global Overview</option>
-              <option
-                v-for="b in branches"
-                :key="b.branchId"
-                :value="b.branchId"
-              >
-                {{ b.name }}
-              </option>
-            </select>
+            <Label class="text-[10px] font-black uppercase">View Branch:</Label>
+            <Select v-model="selectedBranchId">
+              <SelectTrigger class="min-w-[150px]">
+                <SelectValue placeholder="Global Overview" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="null">Global Overview</SelectItem>
+                <SelectItem v-for="b in branches" :key="b.branchId" :value="String(b.branchId)">
+                  {{ b.name }}
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div class="flex items-center gap-2">
-            <select
-              v-model="filterStatus"
-              class="bg-neutral-100 dark:bg-neutral-800 border-none rounded-lg text-sm px-4 py-2 focus:ring-2 focus:ring-primary-500"
-            >
-              <option value="all">All Status</option>
-              <option value="low">Low Stock</option>
-              <option value="sufficient">Sufficient</option>
-            </select>
+            <Select v-model="filterStatus">
+              <SelectTrigger>
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="low">Low Stock</SelectItem>
+                <SelectItem value="sufficient">Sufficient</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -191,91 +91,62 @@
           class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden"
         >
           <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead>
-                <tr
+            <Table>
+              <TableHeader>
+                <TableRow
                   class="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800"
                 >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  <TableHead>
                     Name
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Stock Level
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Unit Cost
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Reorder Point
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Last Stock In
-                  </th>
-                  <th
-                    class="px-6 py-3 text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead class="text-right">
                     Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                class="divide-y divide-neutral-200 dark:divide-neutral-800"
-              >
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
                 <template v-if="loading">
-                  <tr v-for="i in 5" :key="i" class="animate-pulse">
-                    <td v-for="j in 6" :key="j" class="px-6 py-4">
+                  <TableRow v-for="i in 5" :key="i" class="animate-pulse">
+                    <TableCell v-for="j in 6" :key="j">
                       <div
                         class="h-4 bg-neutral-200 dark:bg-neutral-800 rounded"
                       ></div>
-                    </td>
-                  </tr>
+                    </TableCell>
+                  </TableRow>
                 </template>
-                <tr v-else-if="filteredIngredients.length === 0">
-                  <td colspan="6" class="px-6 py-12 text-center">
-                    <div class="flex flex-col items-center text-neutral-500">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-12 h-12 mb-3 opacity-20"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path d="m7.5 4.27 9 5.15" />
-                        <path
-                          d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"
-                        />
-                        <path d="m3.3 7 8.7 5 8.7-5" />
-                        <path d="M12 22V12" />
-                      </svg>
+                <TableRow v-else-if="filteredIngredients.length === 0">
+                  <TableCell colspan="6" class="text-center">
+                    <div class="flex flex-col items-center text-neutral-500 py-8">
+                      <PackageSearchIcon class="w-12 h-12 mb-3 opacity-20" />
                       <p>No ingredients found.</p>
                     </div>
-                  </td>
-                </tr>
-                <tr
+                  </TableCell>
+                </TableRow>
+                <TableRow
                   v-for="item in filteredIngredients"
                   :key="item.ingredientId"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                 >
-                  <td class="px-6 py-4">
+                  <TableCell>
                     <div class="font-medium text-neutral-900 dark:text-white">
                       {{ item.name }}
                     </div>
                     <div class="text-xs text-neutral-500">
                       {{ item.sku || "No SKU" }}
                     </div>
-                  </td>
-                  <td class="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <div class="flex items-center gap-2">
                       <span
                         :class="[
@@ -294,187 +165,111 @@
                         Low
                       </span>
                     </div>
-                  </td>
-                  <td
-                    class="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400"
-                  >
+                  </TableCell>
+                  <TableCell class="text-sm text-neutral-600 dark:text-neutral-400">
                     ${{ item.costPerUnit?.toFixed(2) }}
-                  </td>
-                  <td
-                    class="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400"
-                  >
+                  </TableCell>
+                  <TableCell class="text-sm text-neutral-600 dark:text-neutral-400">
                     {{ item.reorderLevel?.toFixed(2) }} {{ item.unit }}
-                  </td>
-                  <td
-                    class="px-6 py-4 text-sm text-neutral-600 dark:text-neutral-400"
-                  >
+                  </TableCell>
+                  <TableCell class="text-sm text-neutral-600 dark:text-neutral-400">
                     {{
                       item.updatedAt
                         ? new Date(item.updatedAt).toLocaleDateString()
                         : "-"
                     }}
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <div class="flex items-center justify-end gap-2">
-                      <button
-                        @click="openStockIn(item)"
-                        title="Stock In"
-                        class="p-1.5 text-success-600 hover:bg-success-50 rounded-lg transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-4 h-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="M12 5v14m-7-7h14" />
-                        </svg>
-                      </button>
-                      <button
-                        @click="openAdjustment(item)"
-                        title="Adjust Stock"
-                        class="p-1.5 text-warning-600 hover:bg-warning-50 rounded-lg transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-4 h-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z" />
-                          <path d="m13 13 6 6" />
-                        </svg>
-                      </button>
-                      <button
-                        @click="editIngredient(item)"
-                        class="p-1.5 text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          class="w-4 h-4"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="2"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        >
-                          <path
-                            d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"
-                          />
-                        </svg>
-                      </button>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <Button variant="ghost" size="icon" @click="openStockIn(item)" title="Stock In">
+                        <PackagePlusIcon class="w-4 h-4 text-success-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" @click="openAdjustment(item)" title="Adjust Stock">
+                        <PencilLineIcon class="w-4 h-4 text-warning-600" />
+                      </Button>
+                      <Button variant="ghost" size="icon" @click="editIngredient(item)">
+                        <PencilIcon class="w-4 h-4" />
+                      </Button>
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
         </div>
-      </div>
+      </TabsContent>
 
-      <!-- History Section -->
-      <div
-        v-if="activeTab === 'adjustments'"
-        class="space-y-6 animate-in fade-in duration-300"
-      >
+      <TabsContent value="adjustments" class="space-y-6">
         <div
           class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden"
         >
           <div class="overflow-x-auto">
-            <table class="w-full">
-              <thead>
-                <tr
+            <Table>
+              <TableHeader>
+                <TableRow
                   class="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800"
                 >
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  <TableHead>
                     Date
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Ingredient
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Type
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Qty Change
-                  </th>
-                  <th
-                    class="px-6 py-3 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead>
                     Status
-                  </th>
-                  <th
-                    class="px-6 py-3 text-right text-xs font-semibold text-neutral-500 uppercase tracking-wider"
-                  >
+                  </TableHead>
+                  <TableHead class="text-right">
                     Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody
-                class="divide-y divide-neutral-200 dark:divide-neutral-800"
-              >
-                <tr v-if="adjLoading">
-                  <td colspan="6" class="px-6 py-8 text-center">
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="adjLoading">
+                  <TableCell colspan="6" class="text-center">
                     <div
                       class="animate-spin h-6 w-6 border-2 border-primary-500 border-t-transparent rounded-full mx-auto"
                     ></div>
-                  </td>
-                </tr>
-                <tr v-else-if="adjustments.length === 0">
-                  <td
+                  </TableCell>
+                </TableRow>
+                <TableRow v-else-if="adjustments.length === 0">
+                  <TableCell
                     colspan="6"
-                    class="px-6 py-12 text-center text-neutral-500"
+                    class="text-center text-neutral-500"
                   >
                     No adjustment history found.
-                  </td>
-                </tr>
-                <tr
+                  </TableCell>
+                </TableRow>
+                <TableRow
                   v-for="adj in adjustments"
                   :key="adj.adjustmentId"
-                  class="text-sm"
                 >
-                  <td
-                    class="px-6 py-4 whitespace-nowrap text-neutral-500 font-mono text-[10px]"
-                  >
+                  <TableCell class="whitespace-nowrap text-neutral-500 font-mono text-[10px]">
                     {{ new Date(adj.date).toLocaleString() }}
-                  </td>
-                  <td
-                    class="px-6 py-4 font-bold text-neutral-900 dark:text-white"
-                  >
+                  </TableCell>
+                  <TableCell class="font-bold text-neutral-900 dark:text-white">
                     {{ adj.ingredient?.name }}
-                  </td>
-                  <td class="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <span
                       class="text-[10px] font-black uppercase tracking-tighter"
                       >{{ adj.reasonType }}</span
                     >
-                  </td>
-                  <td
+                  </TableCell>
+                  <TableCell
                     :class="[
-                      'px-6 py-4 font-mono font-bold',
+                      'font-mono font-bold',
                       adj.qtyChange < 0 ? 'text-red-500' : 'text-success-500',
                     ]"
                   >
                     {{ adj.qtyChange > 0 ? "+" : "" }}{{ adj.qtyChange }}
-                  </td>
-                  <td class="px-6 py-4">
+                  </TableCell>
+                  <TableCell>
                     <span
                       :class="[
                         'px-2 py-0.5 rounded-full text-[10px] font-black uppercase',
@@ -487,434 +282,191 @@
                     >
                       {{ adj.status }}
                     </span>
-                  </td>
-                  <td class="px-6 py-4 text-right">
-                    <button
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <Button
                       v-if="adj.status === 'PENDING'"
+                      size="sm"
                       @click="initiateApproval(adj)"
-                      class="text-xs bg-primary-600 hover:bg-primary-700 text-white px-3 py-1 rounded-lg font-bold"
                     >
                       Approve
-                    </button>
+                    </Button>
                     <div v-else class="text-[10px] text-neutral-500 italic">
                       By: {{ adj.approvedByName }}
                     </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
         </div>
-      </div>
+      </TabsContent>
 
-      <!-- Create Ingredient Modal -->
-      <div
-        v-if="showCreateModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl w-full max-w-lg overflow-hidden border border-neutral-200 dark:border-neutral-800"
-        >
-          <div
-            class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center"
-          >
-            <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
-              {{ isEditing ? "Edit Ingredient" : "New Ingredient" }}
-            </h3>
-            <button
-              @click="showCreateModal = false"
-              class="text-neutral-400 hover:text-neutral-600"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div class="p-6 space-y-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Name</label
-              >
-              <input
-                type="text"
-                v-model="newIngredient.name"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                placeholder="e.g. Milk"
-              />
+      <Dialog v-model:open="showCreateModal">
+        <DialogContent class="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{{ isEditing ? "Edit Ingredient" : "New Ingredient" }}</DialogTitle>
+          </DialogHeader>
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <Label>Name</Label>
+              <Input v-model="newIngredient.name" type="text" required placeholder="e.g. Milk" />
             </div>
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Unit</label
-                >
-                <input
-                  type="text"
-                  v-model="newIngredient.unit"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                  placeholder="e.g. Liters"
-                />
+              <div class="space-y-2">
+                <Label>Unit</Label>
+                <Input v-model="newIngredient.unit" type="text" required placeholder="e.g. Liters" />
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Cost Per Unit</label
-                >
-                <input
-                  type="number"
-                  v-model="newIngredient.costPerUnit"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                  step="0.01"
-                />
+              <div class="space-y-2">
+                <Label>Cost Per Unit</Label>
+                <Input v-model="newIngredient.costPerUnit" type="number" step="0.01" />
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Initial Stock</label
-                >
-                <input
-                  type="number"
-                  v-model="newIngredient.currentStock"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                />
+              <div class="space-y-2">
+                <Label>Initial Stock</Label>
+                <Input v-model="newIngredient.currentStock" type="number" />
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Reorder Level</label
-                >
-                <input
-                  type="number"
-                  v-model="newIngredient.reorderLevel"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                />
+              <div class="space-y-2">
+                <Label>Reorder Level</Label>
+                <Input v-model="newIngredient.reorderLevel" type="number" />
               </div>
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >SKU</label
-              >
-              <input
-                type="text"
-                v-model="newIngredient.sku"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                placeholder="Optional"
-              />
+            <div class="space-y-2">
+              <Label>SKU</Label>
+              <Input v-model="newIngredient.sku" type="text" placeholder="Optional" />
             </div>
+            <div><CustomImageUpload v-model="newIngredient.imageUrl" label="Ingredient Image" /></div>
           </div>
-          <div
-            class="p-6 bg-neutral-50 dark:bg-neutral-800/50 flex justify-end gap-3"
-          >
-            <button
-              @click="showCreateModal = false"
-              class="px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              @click="saveIngredient"
-              class="px-4 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-            >
-              {{ isEditing ? "Update" : "Save" }} Ingredient
-            </button>
-          </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button variant="secondary" @click="showCreateModal = false">Cancel</Button>
+            <Button variant="default" @click="saveIngredient">{{ isEditing ? "Update" : "Save" }} Ingredient</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <!-- Stock In Modal -->
-      <div
-        v-if="showStockInModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-neutral-200 dark:border-neutral-800"
-        >
-          <div
-            class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center"
-          >
-            <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
-              Stock In: {{ selectedIngredient?.name }}
-            </h3>
-            <button
-              @click="showStockInModal = false"
-              class="text-neutral-400 hover:text-neutral-600"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div class="p-6 space-y-4">
+      <Dialog v-model:open="showStockInModal">
+        <DialogContent class="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Stock In: {{ selectedIngredient?.name }}</DialogTitle>
+          </DialogHeader>
+          <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Branch</label
-                >
-                <select
-                  v-model="newStockIn.branchId"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                >
-                  <option
-                    v-for="branch in branches"
-                    :key="branch.branchId"
-                    :value="branch.branchId"
-                  >
-                    {{ branch.name }}
-                  </option>
-                </select>
+              <div class="space-y-2">
+                <Label>Branch</Label>
+                <Select v-model="newStockIn.branchId">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="branch in branches" :key="branch.branchId" :value="String(branch.branchId)">{{ branch.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Supplier</label
-                >
-                <select
-                  v-model="newStockIn.supplierId"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                >
-                  <option
-                    v-for="sup in suppliers"
-                    :key="sup.supplierId"
-                    :value="sup.supplierId"
-                  >
-                    {{ sup.name }}
-                  </option>
-                </select>
+              <div class="space-y-2">
+                <Label>Supplier</Label>
+                <Select v-model="newStockIn.supplierId">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select supplier" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="sup in suppliers" :key="sup.supplierId" :value="String(sup.supplierId)">{{ sup.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Quantity</label
-                >
-                <input
-                  type="number"
-                  v-model="newStockIn.qtyIn"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                  step="1"
-                />
+              <div class="space-y-2">
+                <Label>Quantity</Label>
+                <Input v-model="newStockIn.qtyIn" type="number" step="1" />
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >Unit Cost</label
-                >
-                <input
-                  type="number"
-                  v-model="newStockIn.unitCost"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                  step="0.01"
-                />
+              <div class="space-y-2">
+                <Label>Unit Cost</Label>
+                <Input v-model="newStockIn.unitCost" type="number" step="0.01" />
               </div>
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Invoice No</label
-              >
-              <input
-                type="text"
-                v-model="newStockIn.invoiceNo"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              />
+            <div class="space-y-2">
+              <Label>Invoice No</Label>
+              <Input v-model="newStockIn.invoiceNo" type="text" />
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Received By</label
-              >
-              <select
-                v-model="newStockIn.receivedBy"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              >
-                <option
-                  v-for="user in users"
-                  :key="user.userId"
-                  :value="user.userId"
-                >
-                  {{ user.username }}
-                </option>
-              </select>
+            <div class="space-y-2">
+              <Label>Received By</Label>
+              <Select v-model="newStockIn.receivedBy">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select user" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="user in users" :key="user.userId" :value="String(user.userId)">{{ user.username }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <div
-            class="p-6 bg-neutral-50 dark:bg-neutral-800/50 flex justify-end gap-3"
-          >
-            <button
-              @click="showStockInModal = false"
-              class="px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              @click="createStockIn"
-              class="px-4 py-2 text-sm font-medium bg-success-600 hover:bg-success-700 text-white rounded-lg transition-colors"
-            >
-              Confirm Stock In
-            </button>
-          </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button variant="secondary" @click="showStockInModal = false">Cancel</Button>
+            <Button variant="default" @click="createStockIn">Confirm Stock In</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <!-- Adjust Stock Modal -->
-      <div
-        v-if="showAdjustmentModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-neutral-200 dark:border-neutral-800"
-        >
-          <div
-            class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center"
-          >
-            <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
-              Adjust Stock: {{ selectedIngredient?.name }}
-            </h3>
-            <button
-              @click="showAdjustmentModal = false"
-              class="text-neutral-400 hover:text-neutral-600"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div class="p-6 space-y-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Branch</label
-              >
-              <select
-                v-model="newAdjustment.branchId"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              >
-                <option
-                  v-for="branch in branches"
-                  :key="branch.branchId"
-                  :value="branch.branchId"
-                >
-                  {{ branch.name }}
-                </option>
-              </select>
+      <Dialog v-model:open="showAdjustmentModal">
+        <DialogContent class="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Adjust Stock: {{ selectedIngredient?.name }}</DialogTitle>
+          </DialogHeader>
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <Label>Branch</Label>
+              <Select v-model="newAdjustment.branchId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select branch" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="branch in branches" :key="branch.branchId" :value="String(branch.branchId)">{{ branch.name }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Adjustment Qty (+/-)</label
-              >
-              <input
-                type="number"
-                v-model="newAdjustment.qtyChange"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-                step="0.1"
-                placeholder="-2 or 5"
-              />
-              <p class="text-xs text-neutral-500 mt-1">
-                Use negative values for wastage/loss, positive for corrections.
-              </p>
+            <div class="space-y-2">
+              <Label>Adjustment Qty (+/-)</Label>
+              <Input v-model="newAdjustment.qtyChange" type="number" step="0.1" placeholder="-2 or 5" />
+              <p class="text-xs text-neutral-500">Use negative values for wastage/loss, positive for corrections.</p>
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Reason</label
-              >
-              <select
-                v-model="newAdjustment.reasonType"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              >
-                <option value="WASTAGE">Wastage / Spoiled</option>
-                <option value="CORRECTION">Inventory Correction</option>
-                <option value="THEFT">Theft / Loss</option>
-                <option value="OTHER">Other</option>
-              </select>
+            <div class="space-y-2">
+              <Label>Reason</Label>
+              <Select v-model="newAdjustment.reasonType">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select reason" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="WASTAGE">Wastage / Spoiled</SelectItem>
+                  <SelectItem value="CORRECTION">Inventory Correction</SelectItem>
+                  <SelectItem value="THEFT">Theft / Loss</SelectItem>
+                  <SelectItem value="OTHER">Other</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Note</label
-              >
-              <textarea
-                v-model="newAdjustment.note"
-                rows="3"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              ></textarea>
+            <div class="space-y-2">
+              <Label>Note</Label>
+              <Textarea v-model="newAdjustment.note" rows="3" />
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Created By</label
-              >
-              <select
-                v-model="newAdjustment.createdBy"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700 focus:ring-2 focus:ring-primary-500"
-              >
-                <option
-                  v-for="user in users"
-                  :key="user.userId"
-                  :value="user.userId"
-                >
-                  {{ user.username }}
-                </option>
-              </select>
+            <div class="space-y-2">
+              <Label>Created By</Label>
+              <Select v-model="newAdjustment.createdBy">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select user" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="user in users" :key="user.userId" :value="String(user.userId)">{{ user.username }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
-          <div
-            class="p-6 bg-neutral-50 dark:bg-neutral-800/50 flex justify-end gap-3"
-          >
-            <button
-              @click="showAdjustmentModal = false"
-              class="px-4 py-2 text-sm font-medium text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              @click="createAdjustment"
-              class="px-4 py-2 text-sm font-medium bg-warning-600 hover:bg-warning-700 text-white rounded-lg transition-colors"
-            >
-              Submit Adjustment
-            </button>
-          </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button variant="secondary" @click="showAdjustmentModal = false">Cancel</Button>
+            <Button variant="default" @click="createAdjustment">Submit Adjustment</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      <!-- Approval Modal -->
       <ApprovalModal
         v-model="showApprovalModal"
         action-type="VOID"
@@ -922,125 +474,58 @@
         @approve="confirmApproval"
       />
 
-      <!-- Transfer Modal -->
-      <div
-        v-if="showTransferModal"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl w-full max-w-md overflow-hidden border border-neutral-200 dark:border-neutral-800"
-        >
-          <div
-            class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center"
-          >
-            <h3 class="text-xl font-bold text-neutral-900 dark:text-white">
-              Inter-Branch Transfer
-            </h3>
-            <button
-              @click="showTransferModal = false"
-              class="text-neutral-400 hover:text-neutral-600"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <line x1="18" y1="6" x2="6" y2="18"></line>
-                <line x1="6" y1="6" x2="18" y2="18"></line>
-              </svg>
-            </button>
-          </div>
-          <div class="p-6 space-y-4">
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Ingredient</label
-              >
-              <select
-                v-model="transferForm.ingredientId"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
-              >
-                <option
-                  v-for="item in ingredients"
-                  :key="item.ingredientId"
-                  :value="item.ingredientId"
-                >
-                  {{ item.name }}
-                </option>
-              </select>
+      <Dialog v-model:open="showTransferModal">
+        <DialogContent class="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Inter-Branch Transfer</DialogTitle>
+          </DialogHeader>
+          <div class="space-y-4">
+            <div class="space-y-2">
+              <Label>Ingredient</Label>
+              <Select v-model="transferForm.ingredientId">
+                <SelectTrigger>
+                  <SelectValue placeholder="Select ingredient" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="item in ingredients" :key="item.ingredientId" :value="String(item.ingredientId)">{{ item.name }}</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div class="grid grid-cols-2 gap-4">
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >From Branch</label
-                >
-                <select
-                  v-model="transferForm.fromBranchId"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
-                >
-                  <option
-                    v-for="b in branches"
-                    :key="b.branchId"
-                    :value="b.branchId"
-                  >
-                    {{ b.name }}
-                  </option>
-                </select>
+              <div class="space-y-2">
+                <Label>From Branch</Label>
+                <Select v-model="transferForm.fromBranchId">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="b in branches" :key="b.branchId" :value="String(b.branchId)">{{ b.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-              <div>
-                <label
-                  class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                  >To Branch</label
-                >
-                <select
-                  v-model="transferForm.toBranchId"
-                  class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
-                >
-                  <option
-                    v-for="b in branches"
-                    :key="b.branchId"
-                    :value="b.branchId"
-                  >
-                    {{ b.name }}
-                  </option>
-                </select>
+              <div class="space-y-2">
+                <Label>To Branch</Label>
+                <Select v-model="transferForm.toBranchId">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem v-for="b in branches" :key="b.branchId" :value="String(b.branchId)">{{ b.name }}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-            <div>
-              <label
-                class="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1"
-                >Quantity</label
-              >
-              <input
-                type="number"
-                v-model="transferForm.amount"
-                class="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-lg p-2.5 text-sm ring-1 ring-neutral-200 dark:ring-neutral-700"
-              />
+            <div class="space-y-2">
+              <Label>Quantity</Label>
+              <Input v-model="transferForm.amount" type="number" />
             </div>
           </div>
-          <div
-            class="p-6 bg-neutral-50 dark:bg-neutral-800/50 flex justify-end gap-3"
-          >
-            <button
-              @click="showTransferModal = false"
-              class="px-4 py-2 text-sm font-medium text-neutral-600"
-            >
-              Cancel
-            </button>
-            <button
-              @click="executeTransfer"
-              :disabled="loading"
-              class="px-4 py-2 text-sm font-medium bg-amber-600 hover:bg-amber-700 text-white rounded-lg"
-            >
-              Execute Transfer
-            </button>
-          </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button variant="secondary" @click="showTransferModal = false">Cancel</Button>
+            <Button variant="default" :disabled="loading" @click="executeTransfer">Execute Transfer</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   </NuxtLayout>
 </template>
@@ -1048,6 +533,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, reactive, watch } from "vue";
 import ApprovalModal from "~/components/pos/ApprovalModal.vue";
+import { PlusIcon, ArrowLeftRightIcon, DownloadIcon, UploadIcon, SearchIcon, PackageSearchIcon, PackagePlusIcon, PencilLineIcon, PencilIcon } from '@lucide/vue'
 
 definePageMeta({
   layout: false,
@@ -1065,6 +551,7 @@ interface Ingredient {
   costPerUnit: number;
   reorderLevel: number;
   updatedAt: string;
+  imageUrl?: string | null;
 }
 
 interface Supplier {
@@ -1097,16 +584,16 @@ const approving = ref(false);
 const isEditing = ref(false);
 const editingId = ref<number | null>(null);
 const selectedAdjustment = ref<any | null>(null);
-const selectedBranchId = ref<number | null>(null);
+const selectedBranchId = ref<string>('');
 
 const selectedIngredient = ref<Ingredient | null>(null);
 const showTransferModal = ref(false);
 const fileInput = ref<HTMLInputElement | null>(null);
 
 const transferForm = reactive({
-  ingredientId: null as number | null,
-  fromBranchId: null as number | null,
-  toBranchId: null as number | null,
+  ingredientId: '',
+  fromBranchId: '',
+  toBranchId: '',
   amount: 0,
 });
 
@@ -1118,35 +605,36 @@ const newIngredient = reactive({
   costPerUnit: 0,
   reorderLevel: 5,
   sku: "",
+  imageUrl: "",
 });
 
 const newStockIn = reactive({
-  supplierId: null as number | null,
+  supplierId: '',
   ingredientId: null as number | null,
-  branchId: null as number | null,
+  branchId: '',
   qtyIn: 0,
   unitCost: 0,
   totalCost: 0,
-  invoiceNo: "",
-  receivedDate: "",
-  receivedBy: null as number | null,
+  invoiceNo: '',
+  receivedDate: '',
+  receivedBy: '',
 });
 
 const newAdjustment = reactive({
   ingredientId: null as number | null,
-  branchId: null as number | null,
+  branchId: '',
   qtyChange: 0,
-  reasonType: "WASTAGE",
-  note: "",
-  createdBy: null as number | null,
-  date: "",
+  reasonType: 'WASTAGE',
+  note: '',
+  createdBy: '',
+  date: '',
 });
 
 // Fetching
 const fetchIngredients = async () => {
   loading.value = true;
   try {
-    if (selectedBranchId.value) {
+    if (selectedBranchId.value && selectedBranchId.value !== 'null') {
       const data = await get<any[]>(
         `/inventory/branch/${selectedBranchId.value}`,
       );
@@ -1262,6 +750,7 @@ const openCreateModal = () => {
     costPerUnit: 0,
     reorderLevel: 5,
     sku: "",
+    imageUrl: "",
   });
   showCreateModal.value = true;
 };
@@ -1292,6 +781,7 @@ const editIngredient = (item: Ingredient) => {
     costPerUnit: item.costPerUnit,
     reorderLevel: item.reorderLevel,
     sku: item.sku || "",
+    imageUrl: item.imageUrl || "",
   });
   showCreateModal.value = true;
 };
@@ -1300,8 +790,9 @@ const openStockIn = (item: Ingredient) => {
   selectedIngredient.value = item;
   newStockIn.ingredientId = item.ingredientId;
   newStockIn.branchId =
-    selectedBranchId.value ||
-    (branches.value.length > 0 ? branches.value[0].branchId : null);
+    selectedBranchId.value && selectedBranchId.value !== 'null'
+      ? selectedBranchId.value
+      : String(branches.value[0]?.branchId || '');
   newStockIn.unitCost = item.costPerUnit || 0;
   newStockIn.qtyIn = 0;
   newStockIn.receivedDate = new Date().toISOString();
@@ -1309,11 +800,17 @@ const openStockIn = (item: Ingredient) => {
 };
 
 const createStockIn = async () => {
-  // Calculate total cost
   newStockIn.totalCost = newStockIn.qtyIn * newStockIn.unitCost;
 
+  const payload = {
+    ...newStockIn,
+    supplierId: newStockIn.supplierId ? Number(newStockIn.supplierId) : null,
+    branchId: newStockIn.branchId ? Number(newStockIn.branchId) : null,
+    receivedBy: newStockIn.receivedBy ? Number(newStockIn.receivedBy) : null,
+  }
+
   try {
-    await post("/stock-in", newStockIn);
+    await post("/stock-in", payload);
     showStockInModal.value = false;
     toast.success("Stock-in recorded successfully");
     fetchIngredients();
@@ -1327,8 +824,9 @@ const openAdjustment = (item: Ingredient) => {
   selectedIngredient.value = item;
   newAdjustment.ingredientId = item.ingredientId;
   newAdjustment.branchId =
-    selectedBranchId.value ||
-    (branches.value.length > 0 ? branches.value[0].branchId : null);
+    selectedBranchId.value && selectedBranchId.value !== 'null'
+      ? selectedBranchId.value
+      : String(branches.value[0]?.branchId || '');
   newAdjustment.qtyChange = 0;
   newAdjustment.note = "";
   newAdjustment.date = new Date().toISOString();
@@ -1337,9 +835,10 @@ const openAdjustment = (item: Ingredient) => {
 
 const openTransferModal = () => {
   transferForm.fromBranchId =
-    selectedBranchId.value ||
-    (branches.value.length > 0 ? branches.value[0].branchId : null);
-  transferForm.toBranchId = null;
+    selectedBranchId.value && selectedBranchId.value !== 'null'
+      ? selectedBranchId.value
+      : String(branches.value[0]?.branchId || '');
+  transferForm.toBranchId = '';
   transferForm.amount = 0;
   showTransferModal.value = true;
 };
@@ -1359,9 +858,9 @@ const executeTransfer = async () => {
   try {
     await post("/inventory/branch/transfer", null, {
       params: {
-        fromBranchId: transferForm.fromBranchId,
-        toBranchId: transferForm.toBranchId,
-        ingredientId: transferForm.ingredientId,
+        fromBranchId: Number(transferForm.fromBranchId),
+        toBranchId: Number(transferForm.toBranchId),
+        ingredientId: Number(transferForm.ingredientId),
         amount: transferForm.amount,
       },
     });
@@ -1425,9 +924,13 @@ const onFileChange = async (event: any) => {
 const createAdjustment = async () => {
   try {
     const { user } = useAuth();
-    newAdjustment.createdBy = user.value?.userId || 1;
     newAdjustment.date = new Date().toISOString();
-    await post("/stock-adjustments", newAdjustment);
+    const payload = {
+      ...newAdjustment,
+      branchId: newAdjustment.branchId ? Number(newAdjustment.branchId) : null,
+      createdBy: user.value?.userId || 1,
+    }
+    await post("/stock-adjustments", payload);
     showAdjustmentModal.value = false;
     toast.success("Inventory adjustment submitted for approval");
     fetchIngredients();

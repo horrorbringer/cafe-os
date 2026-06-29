@@ -8,12 +8,14 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.backend.dto.RecipeRequestDTO;
 import com.example.backend.dto.RecipeResponseDTO;
+import com.example.backend.dto.RecipeUpdateRequestDTO;
 import com.example.backend.services.RecipeService;
 
 import jakarta.validation.Valid;
@@ -37,6 +39,14 @@ public class RecipeController {
     @GetMapping("/menu-item/{menuItemId}")
     public ResponseEntity<List<RecipeResponseDTO>> getRecipesByMenuItem(@PathVariable Long menuItemId) {
         return ResponseEntity.ok(recipeService.getRecipesByMenuItemId(menuItemId));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<RecipeResponseDTO> updateRecipeQuantity(
+            @PathVariable Long id,
+            @Valid @RequestBody RecipeUpdateRequestDTO request) {
+        RecipeResponseDTO response = recipeService.updateRecipeQuantity(id, request.getQuantityNeeded());
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/{id}")

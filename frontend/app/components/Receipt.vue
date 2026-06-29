@@ -108,6 +108,20 @@
           <span class="change">${{ receipt?.changeAmount?.toFixed(2) }}</span>
         </div>
       </div>
+
+      <template v-if="(receipt?.pointsRedeemed || 0) > 0 || (receipt?.pointsEarned || 0) > 0">
+        <div class="divider dashed"></div>
+        <div class="payment-section">
+          <div class="payment-row" v-if="(receipt?.pointsRedeemed || 0) > 0">
+            <span>Points Redeemed:</span>
+            <span class="bold">{{ receipt?.pointsRedeemed }} pts</span>
+          </div>
+          <div class="payment-row" v-if="(receipt?.pointsEarned || 0) > 0">
+            <span>Points Earned:</span>
+            <span class="bold">{{ receipt?.pointsEarned }} pts</span>
+          </div>
+        </div>
+      </template>
       
       <div class="divider dashed"></div>
       
@@ -123,17 +137,17 @@
     
     <!-- Actions -->
     <div class="receipt-actions" v-if="showActions">
-      <button @click="printReceipt" class="btn btn-primary">
+      <Button @click="printReceipt" variant="default">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <polyline points="6 9 6 2 18 2 18 9"></polyline>
           <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
           <rect x="6" y="14" width="12" height="8"></rect>
         </svg>
         Print Receipt
-      </button>
-      <button @click="$emit('close')" class="btn btn-secondary">
+      </Button>
+      <Button @click="$emit('close')" variant="secondary">
         Close
-      </button>
+      </Button>
     </div>
   </div>
 </template>
@@ -168,6 +182,8 @@ interface Receipt {
   paymentMethod: string
   amountPaid: number
   changeAmount: number
+  pointsRedeemed?: number
+  pointsEarned?: number
   footerMessage: string
 }
 
@@ -427,35 +443,5 @@ defineExpose({
   padding: 1rem;
 }
 
-.btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
 
-.btn-primary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-}
-
-.btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-}
-
-.btn-secondary {
-  background: #f1f5f9;
-  color: #475569;
-  border: 1px solid #e2e8f0;
-}
-
-.btn-secondary:hover {
-  background: #e2e8f0;
-}
 </style>

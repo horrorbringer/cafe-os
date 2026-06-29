@@ -32,6 +32,8 @@ public class IngredientRequestDTO {
     @Positive(message = "Cost per unit must be positive")
     private Double costPerUnit;
 
+    private String imageUrl;
+
     // Manual Getters/Setters
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -50,4 +52,7 @@ public class IngredientRequestDTO {
 
     public Double getCostPerUnit() { return costPerUnit; }
     public void setCostPerUnit(Double costPerUnit) { this.costPerUnit = costPerUnit; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 }

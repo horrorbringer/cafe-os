@@ -92,17 +92,18 @@
             </button>
           </div>
 
-          <button
+          <Button
             @click="checkAccess"
             :disabled="pin.length < 4 || loading"
-            class="w-full btn-primary py-5 rounded-2xl font-black uppercase tracking-widest text-lg disabled:opacity-20 flex items-center justify-center gap-3"
+            variant="default"
+            class="w-full py-5 rounded-2xl font-black uppercase tracking-widest text-lg disabled:opacity-20 flex items-center justify-center gap-3"
           >
             <div
               v-if="loading"
               class="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"
             ></div>
             Access Terminal
-          </button>
+          </Button>
         </div>
 
         <!-- STATE 2: ACTIVE SHIFT DASHBOARD -->
@@ -454,10 +455,6 @@ onUnmounted(() => stopQrTimer());
 <style scoped>
 .keypad-btn {
   @apply h-16 w-full flex items-center justify-center bg-neutral-800/50 hover:bg-neutral-800 text-3xl font-black text-white rounded-3xl transition-all active:scale-90 border border-neutral-800;
-}
-
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white shadow-xl shadow-primary-900/40 active:scale-95 transition-all;
 }
 
 .animate-shake {

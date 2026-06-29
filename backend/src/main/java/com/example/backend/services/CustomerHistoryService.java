@@ -11,13 +11,16 @@ import org.springframework.stereotype.Service;
 
 import com.example.backend.dto.customer.CustomerHistoryDTO;
 import com.example.backend.dto.customer.CustomerHistoryDTO.FavoriteItem;
+import com.example.backend.dto.customer.CustomerHistoryDTO.LoyaltyTransaction;
 import com.example.backend.dto.customer.CustomerHistoryDTO.OrderHistory;
 import com.example.backend.dto.customer.CustomerHistoryDTO.OrderItemSummary;
 import com.example.backend.model.CustomerEntity;
+import com.example.backend.model.LoyaltyTransactionEntity;
 import com.example.backend.model.OrderEntity;
 import com.example.backend.model.OrderItemEntity;
 import com.example.backend.model.PaymentEntity;
 import com.example.backend.repository.CustomerRepository;
+import com.example.backend.repository.LoyaltyTransactionRepository;
 import com.example.backend.repository.OrderRepository;
 import com.example.backend.repository.PaymentRepository;
 
@@ -27,13 +30,16 @@ public class CustomerHistoryService {
     private final CustomerRepository customerRepository;
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
+    private final LoyaltyTransactionRepository loyaltyTransactionRepository;
 
     public CustomerHistoryService(CustomerRepository customerRepository,
             OrderRepository orderRepository,
-            PaymentRepository paymentRepository) {
+            PaymentRepository paymentRepository,
+            LoyaltyTransactionRepository loyaltyTransactionRepository) {
         this.customerRepository = customerRepository;
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
+        this.loyaltyTransactionRepository = loyaltyTransactionRepository;
     }
 
     public CustomerHistoryDTO getCustomerHistory(Long customerId) {
@@ -165,6 +171,35 @@ public class CustomerHistoryService {
                 .collect(Collectors.toList());
         history.setFavoriteItems(favorites);
 
+        List<LoyaltyTransaction> loyaltyTransactions = loyaltyTransactionRepository
+                .findTop50ByCustomerCustomerIdAndDeletedAtIsNullOrderByCreatedAtDesc(customer.getCustomerId())
+                .stream()
+                .map(transaction -> toLoyaltyTransaction(transaction, dateFormatter, timeFormatter))
+                .collect(Collectors.toList());
+        history.setLoyaltyTransactions(loyaltyTransactions);
+
         return history;
+    }
+
+    private LoyaltyTransaction toLoyaltyTransaction(LoyaltyTransactionEntity transaction,
+            DateTimeFormatter dateFormatter,
+            DateTimeFormatter timeFormatter) {
+        LoyaltyTransaction dto = new LoyaltyTransaction();
+        dto.setTransactionId(transaction.getLoyaltyTransactionId());
+        dto.setType(transaction.getType() != null ? transaction.getType().name() : "UNKNOWN");
+        dto.setPoints(transaction.getPoints());
+        dto.setBalanceAfter(transaction.getBalanceAfter());
+        dto.setNote(transaction.getNote());
+
+        if (transaction.getOrder() != null) {
+            dto.setOrderId(transaction.getOrder().getOrderId());
+            dto.setOrderNo(transaction.getOrder().getOrderNo());
+        }
+        if (transaction.getCreatedAt() != null) {
+            dto.setDate(transaction.getCreatedAt().format(dateFormatter));
+            dto.setTime(transaction.getCreatedAt().format(timeFormatter));
+        }
+
+        return dto;
     }
 }

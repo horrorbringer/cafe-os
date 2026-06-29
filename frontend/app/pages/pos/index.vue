@@ -339,165 +339,58 @@
       </div>
     </div>
 
-    <!-- Variant Selection Modal (Unchanged logic, compacted for this view) -->
-    <div
-      v-if="showVariantModal && selectedItem"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-    >
-      <!-- ... existing Code for Variant Modal ... -->
-      <div
-        class="bg-neutral-800 rounded-2xl w-full max-w-sm border border-neutral-700 overflow-hidden"
-      >
-        <div class="p-4 border-b border-neutral-700 bg-neutral-900/50">
-          <h3 class="text-lg font-bold text-white">Select Size</h3>
-          <p class="text-neutral-400 text-sm">{{ trans(selectedItem, 'name') }}</p>
-        </div>
-        <div class="p-5 grid grid-cols-3 gap-3">
-          <button
-            v-for="variant in selectedItem.variants"
-            :key="variant.variantId"
-            @click="selectedVariant = variant"
-            :class="[
-              'p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all',
-              selectedVariant?.variantId === variant.variantId
-                ? 'bg-primary-600/20 border-primary-500 text-white'
-                : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-500',
-            ]"
-          >
+    <Dialog v-model:open="showVariantModal">
+      <DialogContent class="sm:max-w-sm bg-neutral-800 border-neutral-700">
+        <DialogHeader>
+          <DialogTitle class="text-white">Select Size</DialogTitle>
+          <DialogDescription class="text-neutral-400">{{ trans(selectedItem, 'name') }}</DialogDescription>
+        </DialogHeader>
+        <div class="grid grid-cols-3 gap-3">
+          <button v-for="variant in selectedItem?.variants" :key="variant.variantId" @click="selectedVariant = variant" :class="['p-3 rounded-xl border-2 flex flex-col items-center gap-1 transition-all', selectedVariant?.variantId === variant.variantId ? 'bg-primary-600/20 border-primary-500 text-white' : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-500']">
             <span class="text-xl font-bold">{{ variant.size }}</span>
             <span class="text-xs">${{ variant.price.toFixed(2) }}</span>
           </button>
         </div>
-        <div class="p-4 border-t border-neutral-700 flex gap-3">
-          <button
-            @click="showVariantModal = false"
-            class="flex-1 py-3 rounded-xl border border-neutral-600 text-neutral-300 font-bold hover:bg-neutral-700"
-          >
-            Cancel
-          </button>
-          <button
-            @click="confirmVariantSelection"
-            :disabled="!selectedVariant"
-            class="flex-1 py-3 rounded-xl bg-primary-600 text-white font-bold hover:bg-primary-500 disabled:opacity-50"
-          >
-            Confirm
-          </button>
-        </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="secondary" class="border-neutral-600 text-neutral-300" @click="showVariantModal = false">Cancel</Button>
+          <Button variant="default" :disabled="!selectedVariant" @click="confirmVariantSelection">Confirm</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-    <!-- Add-On Modal (Re-implementation to ensure full file integrity) -->
-    <div
-      v-if="showAddOnModal && selectedItem"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      @click.self="closeAddOnModal"
-    >
-      <div
-        class="bg-neutral-800 rounded-2xl shadow-2xl w-full max-w-lg max-h-[85vh] overflow-hidden border border-neutral-700 flex flex-col"
-      >
-        <!-- Modal Header -->
-        <div
-          class="p-4 border-b border-neutral-700 flex items-center gap-4 bg-neutral-900/50"
-        >
-          <div
-            class="w-14 h-14 rounded-lg bg-neutral-700 overflow-hidden shrink-0"
-          >
-            <img
-              v-if="selectedItem.imageUrl"
-              :src="selectedItem.imageUrl"
-              class="w-full h-full object-cover"
-            />
+    <Dialog v-model:open="showAddOnModal">
+      <DialogContent class="sm:max-w-lg bg-neutral-800 border-neutral-700">
+        <DialogHeader>
+          <div class="flex items-center gap-4">
+            <div class="w-14 h-14 rounded-lg bg-neutral-700 overflow-hidden shrink-0">
+              <img v-if="selectedItem?.imageUrl" :src="selectedItem.imageUrl" class="w-full h-full object-cover" />
+            </div>
+            <div>
+              <DialogTitle class="text-white">{{ trans(selectedItem, 'name') }}</DialogTitle>
+              <p class="text-primary-400 font-mono">${{ ((selectedVariant ? selectedVariant.price : selectedItem?.basePrice || 0) + addOnTotal).toFixed(2) }}</p>
+            </div>
           </div>
-          <div class="flex-1">
-            <h3 class="text-lg font-bold text-white leading-tight">
-              {{ trans(selectedItem, 'name') }}
-            </h3>
-            <p class="text-primary-400 font-mono">
-              ${{
-                (
-                  (selectedVariant
-                    ? selectedVariant.price
-                    : selectedItem.basePrice) + addOnTotal
-                ).toFixed(2)
-              }}
-            </p>
-          </div>
-          <button
-            @click="closeAddOnModal"
-            class="p-2 text-neutral-400 hover:text-white"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-6 h-6"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-          </button>
-        </div>
-
-        <div class="flex-1 overflow-y-auto p-5 scrollbar-thin">
-          <!-- Addons Grid -->
+        </DialogHeader>
+        <div class="overflow-y-auto space-y-5">
           <div v-if="addOnList.length > 0">
-            <h4
-              class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3"
-            >
-              Add-ons
-            </h4>
-            <div class="grid grid-cols-2 gap-3 mb-6">
-              <button
-                v-for="addOn in addOnList"
-                :key="addOn.addonId"
-                @click="toggleAddOn(addOn)"
-                :class="[
-                  'p-3 rounded-xl border text-left flex justify-between items-center transition-all',
-                  isAddOnSelected(addOn.addonId)
-                    ? 'bg-primary-900/20 border-primary-500 text-white'
-                    : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-600',
-                ]"
-              >
+            <h4 class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3">Add-ons</h4>
+            <div class="grid grid-cols-2 gap-3">
+              <button v-for="addOn in addOnList" :key="addOn.addonId" @click="toggleAddOn(addOn)" :class="['p-3 rounded-xl border text-left flex justify-between items-center transition-all', isAddOnSelected(addOn.addonId) ? 'bg-primary-900/20 border-primary-500 text-white' : 'bg-neutral-900 border-neutral-700 text-neutral-400 hover:border-neutral-600']">
                 <span class="text-sm font-medium">{{ trans(addOn, 'name') }}</span>
-                <span class="text-xs font-bold text-primary-400"
-                  >+${{ addOn.price.toFixed(2) }}</span
-                >
+                <span class="text-xs font-bold text-primary-400">+${{ addOn.price.toFixed(2) }}</span>
               </button>
             </div>
           </div>
           <div>
-            <h4
-              class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3"
-            >
-              Notes
-            </h4>
-            <textarea
-              v-model="itemNotes"
-              rows="3"
-              class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-3 text-white text-sm focus:border-primary-500 focus:outline-none placeholder-neutral-600"
-              placeholder="Special instructions..."
-            ></textarea>
+            <h4 class="text-xs font-bold text-neutral-500 uppercase tracking-widest mb-3">Notes</h4>
+            <textarea v-model="itemNotes" rows="3" class="w-full bg-neutral-900 border border-neutral-700 rounded-xl p-3 text-white text-sm focus:border-primary-500 focus:outline-none placeholder-neutral-600" placeholder="Special instructions..."></textarea>
           </div>
         </div>
-
-        <div class="p-5 border-t border-neutral-700 bg-neutral-900">
-          <button
-            @click="confirmAddToCart"
-            class="w-full py-4 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-bold shadow-lg shadow-primary-900/20 transition-all active:scale-[0.98]"
-          >
-            Add to Order • ${{
-              (
-                (selectedVariant
-                  ? selectedVariant.price
-                  : selectedItem.basePrice) + addOnTotal
-              ).toFixed(2)
-            }}
-          </button>
-        </div>
-      </div>
-    </div>
+        <DialogFooter>
+          <Button variant="default" class="w-full" @click="confirmAddToCart">Add to Order • ${{ ((selectedVariant ? selectedVariant.price : selectedItem?.basePrice || 0) + addOnTotal).toFixed(2) }}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </NuxtLayout>
 </template>
 
@@ -964,7 +857,5 @@ const handleKeydown = (e: KeyboardEvent) => {
 html {
   scroll-behavior: smooth;
 }
-.scrollbar-thin {
-  content-visibility: auto;
-}
+
 </style>

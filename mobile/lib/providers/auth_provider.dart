@@ -26,6 +26,9 @@ class AuthProvider extends ChangeNotifier {
   String? get error => _error;
 
   Future<void> _loadToken() async {
+    _isLoading = true;
+    notifyListeners();
+
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('auth_token');
     if (_token != null) {
@@ -37,6 +40,7 @@ class AuthProvider extends ChangeNotifier {
         await logout();
       }
     }
+    _isLoading = false;
     notifyListeners();
   }
 

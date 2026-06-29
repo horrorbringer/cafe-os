@@ -1,12 +1,17 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb
-        :items="[
-          { label: 'Reports', href: '/admin/reports' },
-          { label: 'Staff Productivity' },
-        ]"
-      />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/reports">Reports</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Staff Productivity</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div
@@ -33,9 +38,9 @@
             v-model="endDate"
             class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-sm"
           />
-          <button @click="fetchReport" class="btn-primary" :disabled="loading">
+          <Button @click="fetchReport" variant="default" :disabled="loading">
             Update
-          </button>
+          </Button>
           <button
             @click="downloadProductivity"
             class="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl text-sm font-bold transition-colors"
@@ -62,22 +67,22 @@
           <div
             v-for="i in 4"
             :key="i"
-            class="card h-64 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
+            class="h-64 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
           ></div>
         </div>
         <div
-          class="card h-80 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
+          class="h-80 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
         ></div>
       </div>
 
       <template v-else-if="report && report.employeeStats">
         <!-- Stats Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div
+          <Card
             v-for="stat in report.employeeStats"
             :key="stat.employeeId"
-            class="card p-6 flex flex-col items-center text-center"
           >
+            <CardContent class="p-6 flex flex-col items-center text-center">
             <div
               class="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-2xl font-bold text-neutral-400 mb-4"
             >
@@ -119,55 +124,44 @@
                 </span>
               </div>
             </div>
-          </div>
+          </CardContent>
+          </Card>
         </div>
 
         <!-- Detail Table -->
-        <div
-          class="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl overflow-hidden shadow-sm"
-        >
-          <table class="w-full text-left">
-            <thead>
-              <tr
-                class="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-800"
-              >
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase"
-                >
+        <Card class="overflow-hidden">
+          <CardContent class="p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>
                   Employee
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase"
-                >
+                </TableHead>
+                <TableHead>
                   Total Hours
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase text-center"
-                >
+                </TableHead>
+                <TableHead class="text-center">
                   Late Clock-ins
-                </th>
-                <th
-                  class="px-6 py-4 text-xs font-bold text-neutral-500 uppercase text-right"
-                >
+                </TableHead>
+                <TableHead class="text-right">
                   Avg Order Value
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-neutral-100 dark:divide-neutral-800">
-              <tr
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              <TableRow
                 v-for="stat in report.employeeStats"
                 :key="stat.employeeId"
-                class="hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
               >
-                <td class="px-6 py-4">
+                <TableCell>
                   <span class="font-medium text-neutral-900 dark:text-white">{{
                     stat.fullName
                   }}</span>
-                </td>
-                <td class="px-6 py-4 text-neutral-600 dark:text-neutral-400">
+                </TableCell>
+                <TableCell class="text-neutral-600 dark:text-neutral-400">
                   {{ (stat.totalMinutesWorked / 60).toFixed(1) }} hrs
-                </td>
-                <td class="px-6 py-4 text-center">
+                </TableCell>
+                <TableCell class="text-center">
                   <span
                     :class="
                       stat.lateOccurrences > 2
@@ -178,22 +172,23 @@
                   >
                     {{ stat.lateOccurrences }}
                   </span>
-                </td>
-                <td
-                  class="px-6 py-4 text-right font-bold text-neutral-900 dark:text-white"
-                >
+                </TableCell>
+                <TableCell class="text-right font-bold text-neutral-900 dark:text-white">
                   ${{ stat.averageOrderValue?.toFixed(2) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
+          </CardContent>
+        </Card>
       </template>
 
       <!-- Empty State -->
-      <div v-else class="card p-12 text-center text-neutral-500">
-        No report data available. Try selecting a different date range.
-      </div>
+      <Card v-else>
+        <CardContent class="p-12 text-center text-neutral-500">
+          No report data available. Try selecting a different date range.
+        </CardContent>
+      </Card>
     </div>
   </NuxtLayout>
 </template>
@@ -245,7 +240,4 @@ const downloadProductivity = () => {
 </script>
 
 <style scoped>
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white rounded-xl px-6 py-2 transition-all active:scale-95 disabled:opacity-50 font-bold text-sm;
-}
 </style>

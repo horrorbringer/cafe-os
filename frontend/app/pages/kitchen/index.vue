@@ -571,17 +571,6 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  @apply bg-neutral-900/50;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-neutral-700 rounded-full hover:bg-neutral-600 transition-colors;
-}
-
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }

@@ -1,12 +1,17 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb
-        :items="[
-          { label: 'Reports', href: '/admin/reports' },
-          { label: 'Sales Report' },
-        ]"
-      />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/reports">Reports</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Sales Report</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div
@@ -26,24 +31,16 @@
           <div
             class="flex items-center gap-2 bg-white dark:bg-neutral-800 rounded-xl px-4 py-2 border border-neutral-200 dark:border-neutral-700"
           >
-            <label class="text-sm text-neutral-500">From:</label>
-            <input
-              v-model="startDate"
-              type="date"
-              class="bg-transparent border-none text-sm text-neutral-900 dark:text-white focus:outline-none"
-            />
+            <Label class="text-sm">From:</Label>
+            <Input v-model="startDate" type="date" class="border-0 bg-transparent" />
           </div>
           <div
             class="flex items-center gap-2 bg-white dark:bg-neutral-800 rounded-xl px-4 py-2 border border-neutral-200 dark:border-neutral-700"
           >
-            <label class="text-sm text-neutral-500">To:</label>
-            <input
-              v-model="endDate"
-              type="date"
-              class="bg-transparent border-none text-sm text-neutral-900 dark:text-white focus:outline-none"
-            />
+            <Label class="text-sm">To:</Label>
+            <Input v-model="endDate" type="date" class="border-0 bg-transparent" />
           </div>
-          <button @click="fetchReport" class="btn-primary">
+          <Button @click="fetchReport" variant="default">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               class="w-4 h-4"
@@ -55,7 +52,7 @@
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
             Generate
-          </button>
+          </Button>
 
           <button
             @click="downloadReport"
@@ -84,21 +81,21 @@
           <div
             v-for="i in 4"
             :key="i"
-            class="card h-24 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
+            class="h-24 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
           ></div>
         </div>
         <div class="grid lg:grid-cols-2 gap-6">
           <div
             v-for="i in 2"
             :key="i"
-            class="card h-64 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
+            class="h-64 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
           ></div>
         </div>
         <div class="grid lg:grid-cols-2 gap-6">
           <div
             v-for="i in 2"
             :key="i"
-            class="card h-80 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
+            class="h-80 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
           ></div>
         </div>
       </div>
@@ -106,134 +103,143 @@
       <template v-else-if="report">
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div class="card p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Total Revenue
-                </p>
-                <p
-                  class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+          <Card>
+            <CardContent class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Total Revenue
+                  </p>
+                  <p
+                    class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+                  >
+                    ${{ report.totalRevenue?.toFixed(2) }}
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center"
                 >
-                  ${{ report.totalRevenue?.toFixed(2) }}
-                </p>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 text-success-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <line x1="12" x2="12" y1="2" y2="22" />
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                  </svg>
+                </div>
               </div>
-              <div
-                class="w-12 h-12 rounded-xl bg-success-100 dark:bg-success-900/30 flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-success-600"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <line x1="12" x2="12" y1="2" y2="22" />
-                  <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div class="card p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Total Orders
-                </p>
-                <p
-                  class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+          <Card>
+            <CardContent class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Total Orders
+                  </p>
+                  <p
+                    class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+                  >
+                    {{ report.totalOrders }}
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center"
                 >
-                  {{ report.totalOrders }}
-                </p>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 text-primary-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path
+                      d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"
+                    />
+                    <path d="M3 6h18" />
+                    <path d="M16 10a4 4 0 0 1-8 0" />
+                  </svg>
+                </div>
               </div>
-              <div
-                class="w-12 h-12 rounded-xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-primary-600"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path
-                    d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"
-                  />
-                  <path d="M3 6h18" />
-                  <path d="M16 10a4 4 0 0 1-8 0" />
-                </svg>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div class="card p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Average Order
-                </p>
-                <p
-                  class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+          <Card>
+            <CardContent class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Average Order
+                  </p>
+                  <p
+                    class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+                  >
+                    ${{ report.averageOrderValue?.toFixed(2) }}
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-xl bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center"
                 >
-                  ${{ report.averageOrderValue?.toFixed(2) }}
-                </p>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 text-warning-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M3 3v18h18" />
+                    <path d="m19 9-5 5-4-4-3 3" />
+                  </svg>
+                </div>
               </div>
-              <div
-                class="w-12 h-12 rounded-xl bg-warning-100 dark:bg-warning-900/30 flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-warning-600"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M3 3v18h18" />
-                  <path d="m19 9-5 5-4-4-3 3" />
-                </svg>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div class="card p-6">
-            <div class="flex items-center justify-between">
-              <div>
-                <p class="text-sm text-neutral-500 dark:text-neutral-400">
-                  Items Sold
-                </p>
-                <p
-                  class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+          <Card>
+            <CardContent class="p-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <p class="text-sm text-neutral-500 dark:text-neutral-400">
+                    Items Sold
+                  </p>
+                  <p
+                    class="text-2xl font-bold text-neutral-900 dark:text-white mt-1"
+                  >
+                    {{ report.totalItemsSold }}
+                  </p>
+                </div>
+                <div
+                  class="w-12 h-12 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center"
                 >
-                  {{ report.totalItemsSold }}
-                </p>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    class="w-6 h-6 text-accent-600"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                  >
+                    <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
+                    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
+                  </svg>
+                </div>
               </div>
-              <div
-                class="w-12 h-12 rounded-xl bg-accent-100 dark:bg-accent-900/30 flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="w-6 h-6 text-accent-600"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
-                  <path d="M17 8h1a4 4 0 1 1 0 8h-1" />
-                  <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         <!-- Charts Row -->
         <div class="grid lg:grid-cols-2 gap-6">
           <!-- Daily Sales Chart -->
-          <div class="card p-6">
+          <Card>
+            <CardContent class="p-6">
             <h3
               class="text-lg font-semibold text-neutral-900 dark:text-white mb-4"
             >
@@ -258,10 +264,12 @@
                 </div>
               </div>
             </div>
-          </div>
+          </CardContent>
+          </Card>
 
           <!-- Payment Methods -->
-          <div class="card p-6">
+          <Card>
+            <CardContent class="p-6">
             <h3
               class="text-lg font-semibold text-neutral-900 dark:text-white mb-4"
             >
@@ -301,13 +309,15 @@
                 No payment data available
               </div>
             </div>
-          </div>
+          </CardContent>
+          </Card>
         </div>
 
         <!-- Category Sales & Top Items -->
         <div class="grid lg:grid-cols-2 gap-6">
           <!-- Category Sales -->
-          <div class="card p-6">
+          <Card>
+            <CardContent class="p-6">
             <h3
               class="text-lg font-semibold text-neutral-900 dark:text-white mb-4"
             >
@@ -347,55 +357,50 @@
                 No category data available
               </div>
             </div>
-          </div>
+          </CardContent>
+          </Card>
 
           <!-- Top Selling Items -->
-          <div class="card p-6">
+          <Card>
+            <CardContent class="p-6">
             <h3
               class="text-lg font-semibold text-neutral-900 dark:text-white mb-4"
             >
               Top Selling Items
             </h3>
             <div class="overflow-x-auto">
-              <table class="w-full">
-                <thead>
-                  <tr class="text-left text-xs text-neutral-500 uppercase">
-                    <th class="pb-3">#</th>
-                    <th class="pb-3">Item</th>
-                    <th class="pb-3 text-right">Qty</th>
-                    <th class="pb-3 text-right">Revenue</th>
-                  </tr>
-                </thead>
-                <tbody
-                  class="divide-y divide-neutral-200 dark:divide-neutral-700"
-                >
-                  <tr
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>#</TableHead>
+                    <TableHead>Item</TableHead>
+                    <TableHead class="text-right">Qty</TableHead>
+                    <TableHead class="text-right">Revenue</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow
                     v-for="(item, idx) in report.topSellingItems"
                     :key="item.menuItemId"
-                    class="text-sm"
                   >
-                    <td class="py-3 text-neutral-500">{{ idx + 1 }}</td>
-                    <td class="py-3">
+                    <TableCell class="text-neutral-500">{{ idx + 1 }}</TableCell>
+                    <TableCell>
                       <p class="font-medium text-neutral-900 dark:text-white">
                         {{ item.name }}
                       </p>
                       <p class="text-xs text-neutral-500">
                         {{ item.categoryName }}
                       </p>
-                    </td>
-                    <td
-                      class="py-3 text-right text-neutral-700 dark:text-neutral-300"
-                    >
+                    </TableCell>
+                    <TableCell class="text-right text-neutral-700 dark:text-neutral-300">
                       {{ item.quantitySold }}
-                    </td>
-                    <td
-                      class="py-3 text-right font-semibold text-neutral-900 dark:text-white"
-                    >
+                    </TableCell>
+                    <TableCell class="text-right font-semibold text-neutral-900 dark:text-white">
                       ${{ item.revenue?.toFixed(2) }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
               <div
                 v-if="!report.topSellingItems?.length"
                 class="text-center py-8 text-neutral-500"
@@ -403,12 +408,15 @@
                 No sales data available
               </div>
             </div>
-          </div>
+          </CardContent>
+          </Card>
         </div>
       </template>
 
       <!-- Empty State -->
-      <div v-else class="card p-12 text-center">
+      <div v-else>
+        <Card>
+        <CardContent class="p-12 text-center">
         <svg
           xmlns="http://www.w3.org/2000/svg"
           class="w-16 h-16 mx-auto text-neutral-300 dark:text-neutral-600 mb-4"
@@ -426,6 +434,8 @@
         <p class="text-neutral-500">
           Select a date range and click Generate to view your sales data
         </p>
+      </CardContent>
+      </Card>
       </div>
     </div>
   </NuxtLayout>

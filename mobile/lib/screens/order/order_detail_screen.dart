@@ -96,7 +96,16 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                     ),
                     Positioned.fill(
                       child: Container(
-                        color: AppTheme.background.withValues(alpha: 0.94),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              AppTheme.primary.withValues(alpha: 0.15),
+                              AppTheme.background.withValues(alpha: 0.88),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                     SingleChildScrollView(
@@ -202,6 +211,10 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
                               _totalRow('Delivery Surcharge', '\$${_order!.deliveryFee!.toStringAsFixed(2)}'),
                             if (_order!.discountAmount > 0)
                               _totalRow('Loyalty Reward Applied', '-\$${_order!.discountAmount.toStringAsFixed(2)}', isNegative: true),
+                            if (_order!.pointsRedeemed > 0)
+                              _totalRow('Points Redeemed', '${_order!.pointsRedeemed} pts'),
+                            if (_order!.pointsEarned > 0)
+                              _totalRow('Points Earned', '+${_order!.pointsEarned} pts'),
                             const SizedBox(height: 12),
                             _totalRow('Grand Total', '\$${_order!.totalAmount.toStringAsFixed(2)}', isBold: true),
                           ],

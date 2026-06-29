@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
-  // Warm Cream/Brown Coffee palette — matching auth screens
-  static const Color primary = Color(0xFF9B6B47);       // Warm brown button
-  static const Color primaryDark = Color(0xFF7A5335);    // Deep coffee
-  static const Color primaryLight = Color(0xFFC69C6D);   // Golden latte
-  static const Color accent = Color(0xFFD4A574);         // Warm caramel
-  static const Color background = Color(0xFFF5EDE3);     // Cream bg
-  static const Color surface = Color(0xFFF7F0E8);        // Card cream
-  static const Color surfaceLight = Color(0xFFE8DDD0);   // Border / divider  
-  static const Color textPrimary = Color(0xFF3E2C23);    // Dark brown text
-  static const Color textSecondary = Color(0xFF9E8B7D);  // Muted coffee dust
+  // Espresso Crema palette — rich, grounded, cafe-inspired
+  static const Color primary = Color(0xFF8B6A55);       // Mid-brown button
+  static const Color primaryDark = Color(0xFF5A3B2E);    // Mocha pressed
+  static const Color primaryLight = Color(0xFFC9B19C);   // Latte light
+  static const Color accent = Color(0xFFC08552);         // Caramel accent
+  static const Color background = Color(0xFFF3E7D6);     // Foam cream bg
+  static const Color surface = Color(0xFFFBF3E8);        // Oat card
+  static const Color surfaceLight = Color(0xFFE0D0BC);   // Border / divider  
+  static const Color textPrimary = Color(0xFF2B1B14);    // Dark bean text
+  static const Color textSecondary = Color(0xFF8B6A55);  // Mid-brown muted
   static const Color success = Color(0xFF66BB6A);
   static const Color error = Color(0xFFD32F2F);
   static const Color warning = Color(0xFFF5A623);

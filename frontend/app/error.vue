@@ -24,16 +24,17 @@
         </p>
 
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button 
+          <Button 
             @click="handleError"
-            class="btn-primary btn-lg min-w-[200px] group shadow-lg shadow-primary-900/20 hover:shadow-primary-600/40"
+            size="lg"
+            class="min-w-[200px] group shadow-lg shadow-primary-900/20 hover:shadow-primary-600/40"
           >
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 group-hover:-translate-x-1 transition-transform" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="m12 19-7-7 7-7"/>
               <path d="M19 12H5"/>
             </svg>
             Back to Home
-          </button>
+          </Button>
         </div>
       </div>
     </div>

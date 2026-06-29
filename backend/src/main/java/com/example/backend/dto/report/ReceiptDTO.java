@@ -24,6 +24,8 @@ public class ReceiptDTO {
     private String paymentMethod;
     private Double amountPaid;
     private Double changeAmount;
+    private Integer pointsRedeemed;
+    private Integer pointsEarned;
 
     private String footerMessage;
 
@@ -223,6 +225,22 @@ public class ReceiptDTO {
 
     public void setChangeAmount(Double changeAmount) {
         this.changeAmount = changeAmount;
+    }
+
+    public Integer getPointsRedeemed() {
+        return pointsRedeemed;
+    }
+
+    public void setPointsRedeemed(Integer pointsRedeemed) {
+        this.pointsRedeemed = pointsRedeemed;
+    }
+
+    public Integer getPointsEarned() {
+        return pointsEarned;
+    }
+
+    public void setPointsEarned(Integer pointsEarned) {
+        this.pointsEarned = pointsEarned;
     }
 
     public String getFooterMessage() {

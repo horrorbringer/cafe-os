@@ -1,12 +1,17 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb
-        :items="[
-          { label: 'Reports', href: '/admin/reports' },
-          { label: 'Inventory Audit' },
-        ]"
-      />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink href="/admin/reports">Reports</BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>Inventory Audit</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
       <div
@@ -22,52 +27,28 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-          <select
-            v-model="selectedBranchId"
-            class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-sm appearance-none cursor-pointer hover:border-primary-500 transition-colors"
-          >
-            <option :value="null">All Branches</option>
-            <option
-              v-for="branch in branches"
-              :key="branch.branchId"
-              :value="branch.branchId"
-            >
-              {{ branch.name }}
-            </option>
-          </select>
+          <Select v-model="selectedBranchId">
+            <SelectTrigger>
+              <SelectValue placeholder="All Branches" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem :value="null">All Branches</SelectItem>
+              <SelectItem v-for="branch in branches" :key="branch.branchId" :value="String(branch.branchId)">
+                {{ branch.name }}
+              </SelectItem>
+            </SelectContent>
+          </Select>
 
-          <input
-            type="date"
-            v-model="startDate"
-            class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-sm"
-          />
+          <Input type="date" v-model="startDate" />
           <span class="text-neutral-400">to</span>
-          <input
-            type="date"
-            v-model="endDate"
-            class="bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 text-sm"
-          />
-          <button @click="fetchReport" class="btn-primary" :disabled="loading">
+          <Input type="date" v-model="endDate" />
+          <Button @click="fetchReport" variant="default" :disabled="loading">
             Update
-          </button>
-          <button
-            @click="downloadAudit"
-            class="flex items-center gap-2 px-4 py-2 bg-neutral-100 dark:bg-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl text-sm font-bold transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-4 h-4"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="7 10 12 15 17 10" />
-              <line x1="12" y1="15" x2="12" y2="3" />
-            </svg>
+          </Button>
+          <Button variant="outline" @click="downloadAudit">
+            <DownloadIcon class="w-4 h-4" />
             Export
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -76,14 +57,14 @@
           <div
             v-for="i in 3"
             :key="i"
-            class="card h-32 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
+            class="h-32 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
           ></div>
         </div>
         <div class="grid lg:grid-cols-2 gap-6">
           <div
             v-for="i in 2"
             :key="i"
-            class="card h-80 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
+            class="h-80 animate-pulse bg-neutral-100 dark:bg-neutral-800 rounded-3xl"
           ></div>
         </div>
       </div>
@@ -91,9 +72,10 @@
       <template v-else-if="report && movementReport">
         <!-- Summary Cards -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div
-            class="card p-6 bg-gradient-to-br from-primary-500 to-primary-600 text-white"
+          <Card
+            class="bg-gradient-to-br from-primary-500 to-primary-600 text-white"
           >
+            <CardContent class="p-6">
             <h3
               class="text-sm font-medium text-white/80 uppercase tracking-widest"
             >
@@ -120,11 +102,11 @@
               </svg>
               Total cost of on-hand items
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div
-            class="card p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
-          >
+          <Card>
+            <CardContent class="p-6">
             <h3
               class="text-sm font-medium text-neutral-500 uppercase tracking-widest"
             >
@@ -137,11 +119,11 @@
               {{ report.wastageSummary?.length || 0 }} loss categories
               identified
             </p>
-          </div>
+            </CardContent>
+          </Card>
 
-          <div
-            class="card p-6 bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800"
-          >
+          <Card>
+            <CardContent class="p-6">
             <h3
               class="text-sm font-medium text-neutral-500 uppercase tracking-widest"
             >
@@ -155,14 +137,16 @@
               class="text-xs text-primary-500 font-bold mt-4 inline-block hover:underline"
               >Manage Inventory →</NuxtLink
             >
-          </div>
+            </CardContent>
+          </Card>
         </div>
 
         <!-- AI Recommendations -->
-        <div
+        <Card
           v-if="movementReport.recommendations?.length"
-          class="card p-6 border-primary-500/20 bg-primary-500/5"
+          class="border-primary-500/20 bg-primary-500/5"
         >
+          <CardContent class="p-6">
           <div class="flex items-center gap-3 mb-4">
             <div
               class="w-8 h-8 rounded-lg bg-primary-500 flex items-center justify-center text-white"
@@ -203,10 +187,11 @@
               </p>
             </div>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <!-- Stock Movements Table -->
-        <div class="card overflow-hidden">
+        <Card class="overflow-hidden">
           <div
             class="p-6 border-b border-neutral-200 dark:border-neutral-800 flex justify-between items-center"
           >
@@ -231,34 +216,32 @@
               </svg>
             </div>
           </div>
+          <CardContent class="p-0">
           <div class="overflow-x-auto">
-            <table class="w-full text-left">
-              <thead
+            <Table>
+              <TableHeader
                 class="bg-neutral-50 dark:bg-neutral-800/50 text-xs font-bold text-neutral-500 uppercase tracking-widest"
               >
-                <tr>
-                  <th class="px-6 py-4">Ingredient</th>
-                  <th class="px-6 py-4 text-right">Opening</th>
-                  <th class="px-6 py-4 text-right text-success-600">
+                <TableRow>
+                  <TableHead>Ingredient</TableHead>
+                  <TableHead class="text-right">Opening</TableHead>
+                  <TableHead class="text-right text-success-600">
                     Received (+)
-                  </th>
-                  <th class="px-6 py-4 text-right text-error-600">Sold (-)</th>
-                  <th class="px-6 py-4 text-right text-warning-600">
+                  </TableHead>
+                  <TableHead class="text-right text-error-600">Sold (-)</TableHead>
+                  <TableHead class="text-right text-warning-600">
                     Adjust (+/-)
-                  </th>
-                  <th class="px-6 py-4 text-right font-bold">Closing</th>
-                  <th class="px-6 py-4 text-right">Wastage %</th>
-                </tr>
-              </thead>
-              <tbody
-                class="divide-y divide-neutral-100 dark:divide-neutral-800"
-              >
-                <tr
+                  </TableHead>
+                  <TableHead class="text-right font-bold">Closing</TableHead>
+                  <TableHead class="text-right">Wastage %</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
                   v-for="item in filteredMovements"
                   :key="item.ingredientId"
-                  class="hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-colors"
                 >
-                  <td class="px-6 py-4">
+                  <TableCell>
                     <div class="font-bold text-neutral-900 dark:text-white">
                       {{ item.name }}
                     </div>
@@ -267,29 +250,28 @@
                     >
                       {{ item.sku }}
                     </div>
-                  </td>
-                  <td class="px-6 py-4 text-right text-sm">
+                  </TableCell>
+                  <TableCell class="text-right text-sm">
                     {{ item.openingStock?.toFixed(2) }} {{ item.unit }}
-                  </td>
-                  <td class="px-6 py-4 text-right text-sm text-success-600">
+                  </TableCell>
+                  <TableCell class="text-right text-sm text-success-600">
                     +{{ item.received?.toFixed(2) }}
-                  </td>
-                  <td class="px-6 py-4 text-right text-sm text-error-600">
+                  </TableCell>
+                  <TableCell class="text-right text-sm text-error-600">
                     -{{ item.sold?.toFixed(2) }}
-                  </td>
-                  <td
-                    class="px-6 py-4 text-right text-sm"
+                  </TableCell>
+                  <TableCell class="text-right text-sm"
                     :class="
                       item.adjusted >= 0 ? 'text-success-600' : 'text-error-600'
                     "
                   >
                     {{ item.adjusted >= 0 ? "+" : ""
                     }}{{ item.adjusted?.toFixed(2) }}
-                  </td>
-                  <td class="px-6 py-4 text-right text-sm font-bold">
+                  </TableCell>
+                  <TableCell class="text-right text-sm font-bold">
                     {{ item.closingStock?.toFixed(2) }} {{ item.unit }}
-                  </td>
-                  <td class="px-6 py-4 text-right">
+                  </TableCell>
+                  <TableCell class="text-right">
                     <span
                       :class="[
                         'px-2 py-1 rounded text-[10px] font-bold',
@@ -300,16 +282,18 @@
                     >
                       {{ item.wastagePercentage?.toFixed(1) }}%
                     </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
           </div>
-        </div>
+          </CardContent>
+        </Card>
 
         <div class="grid lg:grid-cols-2 gap-6">
           <!-- Wastage Breakdown -->
-          <div class="card p-6">
+          <Card>
+            <CardContent class="p-6">
             <h3 class="text-lg font-bold text-neutral-900 dark:text-white mb-6">
               Wastage by Reason
             </h3>
@@ -356,10 +340,12 @@
                 No wastage recorded in this period.
               </div>
             </div>
-          </div>
+          </CardContent>
+          </Card>
 
           <!-- Inventory Alerts -->
-          <div class="card p-6">
+          <Card>
+            <CardContent class="p-6">
             <h3 class="text-lg font-bold text-neutral-900 dark:text-white mb-6">
               Critical Actions
             </h3>
@@ -435,20 +421,24 @@
                 </div>
               </div>
             </div>
-          </div>
+          </CardContent>
+          </Card>
         </div>
       </template>
 
       <!-- Empty State -->
-      <div v-else class="card p-12 text-center text-neutral-500">
-        No report data available. Try selecting a different date range.
-      </div>
+      <Card v-else>
+        <CardContent class="p-12 text-center text-neutral-500">
+          No report data available. Try selecting a different date range.
+        </CardContent>
+      </Card>
     </div>
   </NuxtLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
+import { DownloadIcon } from '@lucide/vue'
 
 definePageMeta({
   layout: false,
@@ -461,7 +451,7 @@ const startDate = ref(
   new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
 );
 const endDate = ref(new Date().toISOString().split("T")[0]);
-const selectedBranchId = ref<number | null>(null);
+const selectedBranchId = ref<string | null>(null);
 const branches = ref<any[]>([]);
 const loading = ref(true);
 const report = ref<any>(null);
@@ -525,7 +515,4 @@ const downloadAudit = () => {
 </script>
 
 <style scoped>
-.btn-primary {
-  @apply bg-primary-600 hover:bg-primary-700 text-white rounded-xl px-6 py-2 transition-all active:scale-95 disabled:opacity-50 font-bold text-sm;
-}
 </style>

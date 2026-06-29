@@ -1,12 +1,16 @@
 <template>
   <NuxtLayout name="admin">
     <div class="space-y-6">
-      <UiBreadcrumb :items="[{ label: 'Orders' }]" />
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbPage>Orders</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
 
       <!-- Header -->
-      <div
-        class="flex flex-col md:flex-row md:items-center md:justify-between gap-4"
-      >
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
           <h1 class="text-2xl font-bold text-neutral-900 dark:text-white">
             Order Management
@@ -18,70 +22,39 @@
 
         <div class="flex items-center gap-3">
           <div class="relative">
-            <input
+            <SearchIcon class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400" />
+            <Input
               v-model="searchQuery"
               type="text"
               placeholder="Search by order #..."
-              class="w-64 px-4 py-2 pl-10 rounded-xl bg-white dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-primary-500"
+              class="w-64 pl-10"
             />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.3-4.3" />
-            </svg>
           </div>
-          <button
-            @click="fetchOrders"
-            class="p-2 text-neutral-500 hover:text-primary-600 transition-colors"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-5 h-5"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-            >
-              <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-              <path d="M3 3v5h5" />
-              <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-              <path d="M16 16h5v5" />
-            </svg>
-          </button>
+          <Button variant="ghost" size="icon" @click="fetchOrders">
+            <RefreshCwIcon class="w-4 h-4" />
+          </Button>
         </div>
       </div>
 
       <!-- Filters -->
       <div class="flex flex-wrap items-center gap-3 pb-2 overflow-x-auto">
-        <button
+        <Button
           v-for="status in ['ALL', 'PAID', 'PENDING', 'VOID', 'REFUND']"
           :key="status"
+          :variant="selectedStatus === status ? 'default' : 'outline'"
           @click="selectedStatus = status"
-          :class="[
-            'px-4 py-2 rounded-xl text-sm font-medium transition-all',
-            selectedStatus === status
-              ? 'bg-primary-600 text-white shadow-lg shadow-primary-900/20'
-              : 'bg-white dark:bg-neutral-800 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-700 border border-neutral-200 dark:border-neutral-700',
-          ]"
         >
           {{ status }}
-        </button>
+        </Button>
       </div>
 
-      <div class="card overflow-hidden">
+      <Card class="overflow-hidden">
+        <CardContent class="p-0">
         <div class="overflow-x-auto">
-          <table class="w-full">
-            <thead>
-              <tr
-                class="bg-neutral-50 dark:bg-neutral-800/50 border-b border-neutral-200 dark:border-neutral-700"
-              >
-                <th
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead
                   v-for="h in [
                     'Order No',
                     'Date',
@@ -92,51 +65,48 @@
                     'Actions',
                   ]"
                   :key="h"
-                  class="px-6 py-4 text-left text-xs font-semibold text-neutral-500 uppercase tracking-wider"
                 >
                   {{ h === "Actions" ? "" : h }}
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-neutral-200 dark:divide-neutral-700">
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               <template v-if="loading">
-                <tr v-for="i in 5" :key="i" class="animate-pulse">
-                  <td v-for="j in 7" :key="j" class="px-6 py-4">
+                <TableRow v-for="i in 5" :key="i" class="animate-pulse">
+                  <TableCell v-for="j in 7" :key="j">
                     <div
                       class="h-4 bg-neutral-100 dark:bg-neutral-800 rounded"
                     ></div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               </template>
-              <tr
+              <TableRow
                 v-for="order in filteredOrders"
                 :key="order.orderId"
-                class="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
               >
-                <td class="px-6 py-4 whitespace-nowrap">
+                <TableCell class="whitespace-nowrap">
                   <span
                     class="text-sm font-mono font-bold text-neutral-900 dark:text-white"
                     >{{ order.orderNo }}</span
                   >
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                </TableCell>
+                <TableCell class="whitespace-nowrap">
                   <div class="text-sm text-neutral-600 dark:text-neutral-400">
                     {{ new Date(order.createdAt).toLocaleDateString() }}
                   </div>
                   <div class="text-[10px] text-neutral-500">
                     {{ new Date(order.createdAt).toLocaleTimeString() }}
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                </TableCell>
+                <TableCell class="whitespace-nowrap">
                   <div class="text-sm text-neutral-900 dark:text-white">
                     {{ order.customer?.name || "Walk-in" }}
                   </div>
                   <div class="text-[10px] text-neutral-500">
                     Cashier: {{ order.cashierUser?.userName || "System" }}
                   </div>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-sm text-neutral-500"
+                </TableCell>
+                <TableCell class="whitespace-nowrap text-sm text-neutral-500"
                 >
                   <div class="flex flex-col gap-1">
                     <span
@@ -153,111 +123,57 @@
                       >{{ order.orderSource || "POS" }}</span
                     >
                   </div>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                </TableCell>
+                <TableCell class="whitespace-nowrap">
                   <span
                     class="text-sm font-bold text-neutral-900 dark:text-white"
                     >${{ order.totalAmount?.toFixed(2) }}</span
                   >
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
+                </TableCell>
+                <TableCell class="whitespace-nowrap">
                   <span
                     :class="getStatusClass(order.status)"
                     class="text-[10px] px-2 py-1 rounded-full font-bold uppercase"
                   >
                     {{ order.status }}
                   </span>
-                </td>
-                <td
-                  class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium"
-                >
+                </TableCell>
+                <TableCell class="whitespace-nowrap text-right text-sm font-medium">
                   <div class="flex items-center justify-end gap-2">
-                    <button
-                      @click="viewOrder(order)"
-                      class="p-2 text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 rounded-lg transition-colors"
-                      title="View Details"
-                    >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path
-                          d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0z"
-                        />
-                        <circle cx="12" cy="12" r="3" />
-                      </svg>
-                    </button>
-                    <button
+                    <Button variant="ghost" size="icon" @click="viewOrder(order)" title="View Details">
+                      <EyeIcon class="w-4 h-4" />
+                    </Button>
+                    <Button
                       v-if="order.status === 'PENDING'"
+                      variant="ghost"
+                      size="icon"
                       @click="initiateAdjustment(order, 'VOID')"
-                      class="p-2 text-warning-600 hover:bg-warning-50 dark:hover:bg-warning-900/20 rounded-lg transition-colors"
                       title="Void Order"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
-                        <line x1="12" x2="12" y1="2" y2="12" />
-                      </svg>
-                    </button>
-                    <button
+                      <BanIcon class="w-4 h-4" />
+                    </Button>
+                    <Button
                       v-if="order.status === 'PAID'"
+                      variant="ghost"
+                      size="icon"
                       @click="initiateAdjustment(order, 'REFUND')"
-                      class="p-2 text-error-600 hover:bg-error-50 dark:hover:bg-error-900/20 rounded-lg transition-colors"
                       title="Refund Order"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        class="w-5 h-5"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                      >
-                        <path
-                          d="M11 15h2a2 2 0 1 0 0-4h-3c-1.1 0-2-.9-2-2s.9-2 2-2h2"
-                        />
-                        <path d="M12 5v14" />
-                        <path d="M3 12a9 9 0 0 1 15-6.7L21 8" />
-                        <path d="M21 3v5h-5" />
-                      </svg>
-                    </button>
+                      <RotateCcwIcon class="w-4 h-4" />
+                    </Button>
                   </div>
-                </td>
-              </tr>
-              <tr v-if="filteredOrders.length === 0">
-                <td colspan="7" class="px-6 py-12 text-center">
-                  <div
-                    class="flex flex-col items-center justify-center text-neutral-400"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      class="w-12 h-12 mb-2 opacity-20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"
-                      />
-                      <path d="M3 6h18" />
-                    </svg>
+                </TableCell>
+              </TableRow>
+              <TableRow v-if="filteredOrders.length === 0">
+                <TableCell colspan="7" class="text-center">
+                  <div class="flex flex-col items-center justify-center text-neutral-400">
+                    <InboxIcon class="w-12 h-12 mb-2 opacity-20" />
                     <p>No orders matching your criteria</p>
                   </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </TableCell>
+              </TableRow>
+            </TableBody>
+          </Table>
         </div>
 
         <!-- Pagination Controls -->
@@ -268,259 +184,84 @@
             Showing {{ orders.length }} of {{ totalElements }} orders
           </span>
           <div class="flex items-center gap-2">
-            <button
-              @click="changePage(currentPage - 1)"
-              :disabled="currentPage === 0"
-              class="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-white dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="m15 18-6-6 6-6" />
-              </svg>
-            </button>
+            <Button variant="outline" size="icon" :disabled="currentPage === 0" @click="changePage(currentPage - 1)">
+              <ChevronLeftIcon class="w-4 h-4" />
+            </Button>
             <div class="flex items-center gap-1">
-              <span
-                class="text-sm font-medium px-3 py-1 bg-white dark:bg-neutral-700 rounded-md border border-neutral-200 dark:border-neutral-600"
-              >
+              <span class="text-sm font-medium px-3 py-1 bg-white dark:bg-neutral-700 rounded-md border border-neutral-200 dark:border-neutral-600">
                 {{ currentPage + 1 }}
               </span>
               <span class="text-neutral-400 text-sm">/ {{ totalPages }}</span>
             </div>
-            <button
-              @click="changePage(currentPage + 1)"
-              :disabled="currentPage >= totalPages - 1"
-              class="p-2 rounded-lg border border-neutral-200 dark:border-neutral-700 hover:bg-white dark:hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-4 h-4"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="m9 18 6-6-6-6" />
-              </svg>
-            </button>
+            <Button variant="outline" size="icon" :disabled="currentPage >= totalPages - 1" @click="changePage(currentPage + 1)">
+              <ChevronRightIcon class="w-4 h-4" />
+            </Button>
           </div>
         </div>
-      </div>
+        </CardContent>
+      </Card>
 
-      <!-- Order Details Modal -->
-      <div
-        v-if="selectedOrder"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
-      >
-        <div
-          class="bg-white dark:bg-neutral-800 rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-hidden border border-neutral-200 dark:border-neutral-700 flex flex-col"
-        >
-          <div
-            class="p-4 border-b border-neutral-200 dark:border-neutral-700 flex items-center justify-between"
-          >
-            <h3 class="text-lg font-bold text-neutral-900 dark:text-white">
-              Order Details: {{ selectedOrder.orderNo }}
-            </h3>
-            <button
-              @click="selectedOrder = null"
-              class="text-neutral-400 hover:text-white"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                class="w-5 h-5"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
-            </button>
-          </div>
-
-          <div class="p-6 overflow-y-auto flex-1 space-y-6">
-            <!-- Summary Info -->
+      <Dialog v-model:open="showDetailsModal">
+        <DialogContent class="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle v-if="selectedOrder">Order Details: {{ selectedOrder.orderNo }}</DialogTitle>
+          </DialogHeader>
+          <div v-if="selectedOrder" class="space-y-6">
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div>
-                <p
-                  class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold"
-                >
-                  Date
-                </p>
-                <p class="text-sm font-medium dark:text-white">
-                  {{ new Date(selectedOrder.createdAt).toLocaleString() }}
-                </p>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Date</p>
+                <p class="text-sm font-medium dark:text-white">{{ new Date(selectedOrder.createdAt).toLocaleString() }}</p>
               </div>
               <div>
-                <p
-                  class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold"
-                >
-                  Customer
-                </p>
-                <p class="text-sm font-medium dark:text-white">
-                  {{ selectedOrder.customer?.name || "Walk-in" }}
-                </p>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Customer</p>
+                <p class="text-sm font-medium dark:text-white">{{ selectedOrder.customer?.name || "Walk-in" }}</p>
               </div>
               <div>
-                <p
-                  class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold"
-                >
-                  Cashier
-                </p>
-                <p class="text-sm font-medium dark:text-white">
-                  {{ selectedOrder.cashierUser?.userName }}
-                </p>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Cashier</p>
+                <p class="text-sm font-medium dark:text-white">{{ selectedOrder.cashierUser?.userName }}</p>
               </div>
               <div>
-                <p
-                  class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold"
-                >
-                  Status
-                </p>
-                <span
-                  :class="getStatusClass(selectedOrder.status)"
-                  class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase"
-                >
-                  {{ selectedOrder.status }}
-                </span>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Status</p>
+                <span :class="getStatusClass(selectedOrder.status)" class="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase">{{ selectedOrder.status }}</span>
               </div>
               <div>
-                <p
-                  class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold"
-                >
-                  Source
-                </p>
-                <p class="text-sm font-medium dark:text-white">
-                  {{ selectedOrder.orderSource || "POS" }}
-                  <span
-                    v-if="selectedOrder.tableNo"
-                    class="text-primary-600 ml-1"
-                    >(Table {{ selectedOrder.tableNo }})</span
-                  >
-                </p>
+                <p class="text-[10px] text-neutral-500 uppercase tracking-widest font-bold">Source</p>
+                <p class="text-sm font-medium dark:text-white">{{ selectedOrder.orderSource || "POS" }}<span v-if="selectedOrder.tableNo" class="text-primary-600 ml-1">(Table {{ selectedOrder.tableNo }})</span></p>
               </div>
             </div>
-
-            <!-- Items -->
             <div class="space-y-3">
-              <h4
-                class="text-xs font-bold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2 uppercase tracking-widest"
-              >
-                Order Items
-              </h4>
-              <div
-                v-for="item in selectedOrder.items"
-                :key="item.orderItemId"
-                class="flex justify-between items-center text-sm py-2 group"
-              >
+              <h4 class="text-xs font-bold text-neutral-900 dark:text-white border-b border-neutral-200 dark:border-neutral-700 pb-2 uppercase tracking-widest">Order Items</h4>
+              <div v-for="item in selectedOrder.items" :key="item.orderItemId" class="flex justify-between items-center text-sm py-2 group">
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
-                    <span
-                      class="w-6 h-6 rounded bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-primary-600"
-                      >{{ item.qty }}x</span
-                    >
-                    <p class="font-medium dark:text-white">
-                      {{ item.menuItemName || item.menuItem?.name }}
-                      <span
-                        v-if="item.variantName || item.variant?.name"
-                        class="text-xs text-neutral-500"
-                        >({{ item.variantName || item.variant?.name }})</span
-                      >
-                    </p>
+                    <span class="w-6 h-6 rounded bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-[10px] font-bold text-primary-600">{{ item.qty }}x</span>
+                    <p class="font-medium dark:text-white">{{ item.menuItemName || item.menuItem?.name }}<span v-if="item.variantName || item.variant?.name" class="text-xs text-neutral-500">({{ item.variantName || item.variant?.name }})</span></p>
                   </div>
-                  <div
-                    v-if="item.addOnItems?.length"
-                    class="pl-8 mt-1 space-x-1"
-                  >
-                    <span
-                      v-for="addon in item.addOnItems"
-                      :key="addon.id"
-                      class="text-[10px] px-1.5 py-0.5 bg-accent-50 text-accent-700 rounded-md"
-                      >+ {{ addon.name }}</span
-                    >
+                  <div v-if="item.addOnItems?.length" class="pl-8 mt-1 space-x-1">
+                    <span v-for="addon in item.addOnItems" :key="addon.id" class="text-[10px] px-1.5 py-0.5 bg-accent-50 text-accent-700 rounded-md">+ {{ addon.name }}</span>
                   </div>
                 </div>
-                <p class="font-bold dark:text-white">
-                  ${{ ((item.unitPrice || 0) * item.qty).toFixed(2) }}
-                </p>
+                <p class="font-bold dark:text-white">${{ ((item.unitPrice || 0) * item.qty).toFixed(2) }}</p>
               </div>
             </div>
-
-            <!-- Totals -->
-            <div
-              class="space-y-1 pt-4 border-t border-neutral-200 dark:border-neutral-700"
-            >
-              <div class="flex justify-between text-sm text-neutral-500">
-                <span>Subtotal</span>
-                <span>${{ selectedOrder.subTotal?.toFixed(2) }}</span>
-              </div>
-              <div
-                v-if="selectedOrder.discountAmount > 0"
-                class="flex justify-between text-sm text-error-500 font-medium"
-              >
-                <span>Discount</span>
-                <span>-${{ selectedOrder.discountAmount?.toFixed(2) }}</span>
-              </div>
-              <div
-                v-if="selectedOrder.taxAmount > 0"
-                class="flex justify-between text-sm text-neutral-500"
-              >
-                <span>Tax</span>
-                <span>${{ selectedOrder.taxAmount?.toFixed(2) }}</span>
-              </div>
-              <div
-                class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2"
-              >
-                <span>Grand Total</span>
-                <span class="text-primary-600"
-                  >${{ selectedOrder.totalAmount?.toFixed(2) }}</span
-                >
-              </div>
+            <div class="space-y-1 pt-4 border-t border-neutral-200 dark:border-neutral-700">
+              <div class="flex justify-between text-sm text-neutral-500"><span>Subtotal</span><span>${{ selectedOrder.subTotal?.toFixed(2) }}</span></div>
+              <div v-if="selectedOrder.discountAmount > 0" class="flex justify-between text-sm text-error-500 font-medium"><span>Discount</span><span>-${{ selectedOrder.discountAmount?.toFixed(2) }}</span></div>
+              <div v-if="selectedOrder.taxAmount > 0" class="flex justify-between text-sm text-neutral-500"><span>Tax</span><span>${{ selectedOrder.taxAmount?.toFixed(2) }}</span></div>
+              <div class="flex justify-between text-lg font-bold text-neutral-900 dark:text-white pt-2"><span>Grand Total</span><span class="text-primary-600">${{ selectedOrder.totalAmount?.toFixed(2) }}</span></div>
             </div>
-
-            <!-- Note -->
-            <div
-              v-if="selectedOrder.note"
-              class="bg-neutral-50 dark:bg-neutral-900/50 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700"
-            >
-              <p class="text-[10px] text-neutral-500 uppercase font-black mb-1">
-                Audit Log / Note
-              </p>
-              <p class="text-sm dark:text-neutral-300 italic leading-relaxed">
-                {{ selectedOrder.note }}
-              </p>
+            <div v-if="selectedOrder.note" class="bg-neutral-50 dark:bg-neutral-900/50 p-4 rounded-xl border border-neutral-200 dark:border-neutral-700">
+              <p class="text-[10px] text-neutral-500 uppercase font-black mb-1">Audit Log / Note</p>
+              <p class="text-sm dark:text-neutral-300 italic leading-relaxed">{{ selectedOrder.note }}</p>
             </div>
           </div>
-
-          <div
-            class="p-4 border-t border-neutral-200 dark:border-neutral-700 flex justify-end gap-3 bg-neutral-50 dark:bg-neutral-900/50"
-          >
-            <button @click="selectedOrder = null" class="btn-secondary">
-              Close
-            </button>
-            <button
-              v-if="selectedOrder.status === 'PAID'"
-              @click="initiateAdjustment(selectedOrder, 'REFUND')"
-              class="btn-primary bg-error-600 border-error-600 hover:bg-error-700 shadow-lg shadow-error-500/20"
-            >
-              Initiate Refund
-            </button>
-            <button
-              v-if="selectedOrder.status === 'PENDING'"
-              @click="initiateAdjustment(selectedOrder, 'VOID')"
-              class="btn-primary bg-warning-600 border-warning-600 hover:bg-warning-700 shadow-lg shadow-warning-500/20"
-            >
-              Void Order
-            </button>
-          </div>
-        </div>
-      </div>
+          <DialogFooter>
+            <Button variant="secondary" @click="selectedOrder = null">Close</Button>
+            <Button v-if="selectedOrder?.status === 'PAID'" variant="default" class="bg-error-600 border-error-600 hover:bg-error-700" @click="initiateAdjustment(selectedOrder, 'REFUND')">Initiate Refund</Button>
+            <Button v-if="selectedOrder?.status === 'PENDING'" variant="default" class="bg-warning-600 border-warning-600 hover:bg-warning-700" @click="initiateAdjustment(selectedOrder, 'VOID')">Void Order</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <!-- New Approval Modal (PIN + Reason) -->
       <ApprovalModal
@@ -535,6 +276,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from "vue";
+import { SearchIcon, RefreshCwIcon, EyeIcon, BanIcon, RotateCcwIcon, InboxIcon, ChevronLeftIcon, ChevronRightIcon } from "@lucide/vue"
 import ApprovalModal from "~/components/pos/ApprovalModal.vue";
 
 definePageMeta({
@@ -633,6 +375,11 @@ const changePage = (newPage: number) => {
 
 // Helper for "filteredOrders" replacement (now just direct orders)
 const filteredOrders = computed(() => orders.value);
+
+const showDetailsModal = computed({
+  get: () => selectedOrder.value !== null,
+  set: (v) => { if (!v) selectedOrder.value = null }
+})
 
 // -- Actions --
 const viewOrder = (order: any) => {

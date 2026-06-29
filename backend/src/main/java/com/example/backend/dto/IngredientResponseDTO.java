@@ -18,6 +18,7 @@ public class IngredientResponseDTO {
     private Double reorderLevel;
     private Double currentStock;
     private Double costPerUnit;
+    private String imageUrl;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

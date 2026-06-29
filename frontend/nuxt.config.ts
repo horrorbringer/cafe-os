@@ -4,7 +4,18 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
 
   // Modules
-  modules: ["@nuxtjs/tailwindcss", "@vueuse/nuxt", "@nuxtjs/google-fonts", "@nuxtjs/i18n"],
+  modules: [
+    "@nuxtjs/tailwindcss",
+    "@vueuse/nuxt",
+    "@nuxtjs/google-fonts",
+    "@nuxtjs/i18n",
+    'shadcn-nuxt'
+  ],
+
+  shadcn: {
+    prefix: '',
+    componentDir: '@/components/ui'
+  },
 
   i18n: {
     locales: [

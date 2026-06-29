@@ -62,4 +62,14 @@ public class RecipeService {
     public void deleteRecipe(Long recipeId) {
         recipeRepository.deleteById(recipeId);
     }
+
+    @Transactional
+    public RecipeResponseDTO updateRecipeQuantity(Long recipeId, Double quantityNeeded) {
+        RecipeEntity recipe = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new RuntimeException("Recipe not found"));
+        recipe.setQuantityNeeded(quantityNeeded);
+        recipe.setUpdatedAt(LocalDateTime.now());
+        RecipeEntity saved = recipeRepository.save(recipe);
+        return recipeMapper.toResponseDTO(saved);
+    }
 }
